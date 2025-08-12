@@ -244,7 +244,7 @@
 
             <div class="input-group">
                 <label class="input-label" for="roomCode">게임방 코드</label>
-                <input type="text" id="roomCode" class="input-field" placeholder="예: ABC123" maxlength="6">
+                <input type="text" id="roomCode" class="input-field" placeholder="예: A1B2" maxlength="4">
             </div>
 
             <button class="btn btn-secondary" onclick="joinRoom()" id="joinRoomBtn">
@@ -258,7 +258,7 @@
             
             <div class="room-code-display">
                 <div class="room-code-label">게임방 코드</div>
-                <div class="room-code-value" id="generatedRoomCode">ABC123</div>
+                <div class="room-code-value" id="generatedRoomCode">A1B2</div>
             </div>
 
             <p style="margin-bottom: 20px; opacity: 0.9;">
@@ -315,11 +315,11 @@
             }
         }
 
-        // 방 코드 생성
+        // 방 코드 생성 (4자리로 변경)
         function generateRoomCode() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let result = '';
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 4; i++) {
                 result += chars.charAt(Math.floor(Math.random() * chars.length));
             }
             return result;
