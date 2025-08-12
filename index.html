@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>칭찬카드게임 - 로그인</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            background: rgba(255,255,255,0.15);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .divider {
+            margin: 30px 0;
+            position: relative;
+            text-align: center;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .divider span {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0 20px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .room-code-display {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px dashed rgba(255,255,255,0.3);
+        }
+
+        .room-code-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .room-code-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #4ecdc4;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #4ecdc4;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .success-message {
+            background: rgba(78, 205, 196, 0.2);
+            border: 1px solid #4ecdc4;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+            }
+            
+            .logo {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🎉</div>
+        <h1 class="title">칭찬카드게임</h1>
+        <p class="subtitle">서로를 칭찬하며 카드를 모아보세요!</p>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <!-- 로그인 폼 -->
+        <div id="loginForm">
+            <div class="input-group">
+                <label class="input-label" for="nickname">닉네임</label>
+                <input type="text" id="nickname" class="input-field" placeholder="예: 홍길동" maxlength="10">
+            </div>
+
+            <button class="btn btn-primary" onclick="createRoom()" id="createRoomBtn">
+                새 게임방 만들기
+            </button>
+
+            <div class="divider">
+                <span>또는</span>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="roomCode">게임방 코드</label>
+                <input type="text" id="roomCode" class="input-field" placeholder="예: ABC123" maxlength="6">
+            </div>
+
+            <button class="btn btn-secondary" onclick="joinRoom()" id="joinRoomBtn">
+                게임방 참가하기
+            </button>
+        </div>
+
+        <!-- 방 생성 완료 -->
+        <div id="roomCreated" style="display: none;">
+            <h2>🎊 게임방이 생성되었습니다!</h2>
+            
+            <div class="room-code-display">
+                <div class="room-code-label">게임방 코드</div>
+                <div class="room-code-value" id="generatedRoomCode">ABC123</div>
+            </div>
+
+            <p style="margin-bottom: 20px; opacity: 0.9;">
+                이 코드를 친구들에게 공유하세요!<br>
+                최소 2명이 모이면 게임을 시작할 수 있습니다.
+            </p>
+
+            <button class="btn btn-primary" onclick="enterGameRoom()">
+                게임방 입장하기
+            </button>
+        </div>
+
+        <!-- 로딩 -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <div>연결 중...</div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3IwL7hYsWIT6wRpenGXwqvSBtV_WIx-M",
+            authDomain: "complimentcardgame.firebaseapp.com",
+            projectId: "complimentcardgame",
+            storageBucket: "complimentcardgame.firebasestorage.app",
+            messagingSenderId: "766205964734",
+            appId: "1:766205964734:web:0aa711ffc46f96e51889ef",
+            measurementId: "G-P7KM5ETH2J"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentUser = null;
+        let currentRoomCode = null;
+
+        // 익명 로그인
+        async function signInAnonymously() {
+            try {
+                const userCredential = await auth.signInAnonymously();
+                currentUser = userCredential.user;
+                return currentUser;
+            } catch (error) {
+                showError('로그인에 실패했습니다: ' + error.message);
+                throw error;
+            }
+        }
+
+        // 방 코드 생성
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // 새 게임방 만들기
+        async function createRoom() {
+            const nickname = document.getElementById('nickname').value.trim();
+            
+            if (!nickname) {
+                showError('닉네임을 입력해주세요.');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                // 익명 로그인
+                await signInAnonymously();
+
+                // 방 코드 생성 (중복 확인)
+                let roomCode;
+                let isUnique = false;
+                
+                while (!isUnique) {
+                    roomCode = generateRoomCode();
+                    const roomDoc = await db.collection('games').doc(roomCode).get();
+                    if (!roomDoc.exists) {
+                        isUnique = true;
+                    }
+                }
+
+                // 게임방 생성
+                const gameData = {
+                    roomCode: roomCode,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'waiting', // waiting, playing, finished
+                    players: [
+                        {
+                            id: currentUser.uid,
+                            nickname: nickname,
+                            isHost: true,
+                            joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            score: 0,
+                            cards: []
+                        }
+                    ],
+                    currentKingIndex: 0,
+                    currentRound: 1,
+                    currentMission: '',
+                    deck: [],
+                    settings: {
+                        maxPlayers: 6,
+                        maxRounds: 5
+                    }
+                };
+
+                await db.collection('games').doc(roomCode).set(gameData);
+
+                currentRoomCode = roomCode;
+                
+                showLoading(false);
+                showRoomCreated(roomCode);
+
+            } catch (error) {
+                showLoading(false);
+                showError('게임방 생성에 실패했습니다: ' + error.message);
+            }
+        }
+
+        // 게임방 참가하기
+        async function joinRoom() {
+            const nickname = document.getElementById('nickname').value.trim();
+            const roomCode = document.getElementById('roomCode').value.trim().toUpperCase();
+            
+            if (!nickname) {
+                showError('닉네임을 입력해주세요.');
+                return;
+            }
+
+            if (!roomCode) {
+                showError('게임방 코드를 입력해주세요.');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                // 익명 로그인
+                await signInAnonymously();
+
+                // 게임방 확인
+                const roomDoc = await db.collection('games').doc(roomCode).get();
+                
+                if (!roomDoc.exists) {
+                    showLoading(false);
+                    showError('존재하지 않는 게임방 코드입니다.');
+                    return;
+                }
+
+                const gameData = roomDoc.data();
+
+                // 게임 상태 확인
+                if (gameData.status === 'playing') {
+                    showLoading(false);
+                    showError('이미 시작된 게임방입니다.');
+                    return;
+                }
+
+                if (gameData.status === 'finished') {
+                    showLoading(false);
+                    showError('종료된 게임방입니다.');
+                    return;
+                }
+
+                // 인원 확인
+                if (gameData.players.length >= gameData.settings.maxPlayers) {
+                    showLoading(false);
+                    showError('게임방이 가득 찼습니다.');
+                    return;
+                }
+
+                // 닉네임 중복 확인
+                const nicknameExists = gameData.players.some(player => player.nickname === nickname);
+                if (nicknameExists) {
+                    showLoading(false);
+                    showError('이미 사용 중인 닉네임입니다.');
+                    return;
+                }
+
+                // 플레이어 추가
+                const newPlayer = {
+                    id: currentUser.uid,
+                    nickname: nickname,
+                    isHost: false,
+                    joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    score: 0,
+                    cards: []
+                };
+
+                await db.collection('games').doc(roomCode).update({
+                    players: firebase.firestore.FieldValue.arrayUnion(newPlayer)
+                });
+
+                currentRoomCode = roomCode;
+                
+                showLoading(false);
+                showSuccess('게임방에 참가했습니다!');
+                
+                // 1초 후 게임방으로 이동
+                setTimeout(() => {
+                    enterGameRoom();
+                }, 1000);
+
+            } catch (error) {
+                showLoading(false);
+                showError('게임방 참가에 실패했습니다: ' + error.message);
+            }
+        }
+
+        // 게임방 입장
+        function enterGameRoom() {
+            if (!currentRoomCode) {
+                showError('게임방 코드가 없습니다.');
+                return;
+            }
+
+            // 게임 페이지로 이동 (게임방 코드를 URL 파라미터로 전달)
+            window.location.href = `game.html?room=${currentRoomCode}`;
+        }
+
+        // UI 헬퍼 함수들
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('loginForm').style.display = show ? 'none' : 'block';
+            
+            // 버튼 비활성화
+            document.getElementById('createRoomBtn').disabled = show;
+            document.getElementById('joinRoomBtn').disabled = show;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            const successEl = document.getElementById('successMessage');
+            
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            successEl.style.display = 'none';
+            
+            // 3초 후 자동 숨김
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function showSuccess(message) {
+            const errorEl = document.getElementById('errorMessage');
+            const successEl = document.getElementById('successMessage');
+            
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            
+            // 3초 후 자동 숨김
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function showRoomCreated(roomCode) {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('roomCreated').style.display = 'block';
+            document.getElementById('generatedRoomCode').textContent = roomCode;
+        }
+
+        // Enter 키 처리
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('nickname').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    createRoom();
+                }
+            });
+
+            document.getElementById('roomCode').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    joinRoom();
+                }
+            });
+
+            // 방 코드 자동 대문자 변환
+            document.getElementById('roomCode').addEventListener('input', function(e) {
+                e.target.value = e.target.value.toUpperCase();
+            });
+        });
+    </script>
+</body>
+</html>
