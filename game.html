@@ -41,6 +41,22 @@
             opacity: 0.9;
         }
 
+        .room-info {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .room-code {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4ecdc4;
+            letter-spacing: 2px;
+        }
+
         /* 게임 상태 정보 */
         .game-status {
             background: rgba(255,255,255,0.15);
@@ -105,6 +121,51 @@
 
         .turn-player.my-turn {
             background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            font-weight: bold;
+        }
+
+        /* 게임 대기 화면 */
+        .waiting-room {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .waiting-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .players-waiting {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        .player-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .player-name {
+            font-weight: bold;
+        }
+
+        .host-badge {
+            background: #ffd700;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
             font-weight: bold;
         }
 
@@ -326,11 +387,6 @@
             border-color: #ff6b6b;
         }
 
-        .player-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
         .selection-status {
             text-align: center;
             margin-bottom: 15px;
@@ -389,6 +445,38 @@
             display: none;
         }
 
+        /* 로딩 및 에러 */
+        .loading-screen {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #4ecdc4;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-screen {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #ff6b6b;
+        }
+
         /* 반응형 */
         @media (max-width: 360px) {
             .card {
@@ -408,72 +496,120 @@
 </head>
 <body>
     <div class="game-container" id="gameContainer">
-        <div class="header">
-            <h1>🎉 칭찬카드게임</h1>
-            <p>서로를 칭찬하며 카드를 모아보세요!</p>
+        <!-- 로딩 화면 -->
+        <div id="loadingScreen" class="loading-screen">
+            <div class="spinner"></div>
+            <h2>게임 연결 중...</h2>
+            <p>잠시만 기다려주세요.</p>
         </div>
 
-        <!-- 게임 상태 -->
-        <div class="game-status">
-            <div class="status-row">
-                <span class="status-label">내 점수</span>
-                <span class="status-value" id="myScore">0점</span>
-            </div>
-            <div class="status-row">
-                <span class="status-label">라운드</span>
-                <span class="status-value" id="currentRound">1 / 5</span>
-            </div>
+        <!-- 에러 화면 -->
+        <div id="errorScreen" class="error-screen hidden">
+            <div class="error-title">🚫 연결 오류</div>
+            <p id="errorMessage">게임방에 연결할 수 없습니다.</p>
+            <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+                메인으로 돌아가기
+            </button>
         </div>
 
-        <!-- 턴 순서 -->
-        <div class="turn-order">
-            <div class="status-label" style="margin-bottom: 8px;">왕 순서</div>
-            <div class="turn-indicator" id="turnIndicator"></div>
-        </div>
-
-        <!-- 왕 모드 UI -->
-        <div class="king-mode king-only">
-            <div class="king-title">👑 당신이 왕입니다!</div>
-            <div class="king-mission" id="kingMission">
-                미션을 읽고 다른 플레이어들의 칭찬을 들어보세요.
+        <!-- 대기실 -->
+        <div id="waitingRoom" class="waiting-room hidden">
+            <div class="header">
+                <h1>🎉 칭찬카드게임</h1>
+                <div class="room-info">
+                    <div>게임방 코드</div>
+                    <div class="room-code" id="roomCodeDisplay">ABC123</div>
+                </div>
             </div>
+
+            <div class="waiting-title">플레이어 대기 중...</div>
             
-            <div class="players-selection">
-                <div class="selection-status" id="selectionStatus">칭찬해준 플레이어 2명을 선택하세요 (0/2)</div>
-                <div class="players-grid" id="playersGrid"></div>
-                
-                <button class="btn btn-king" id="kingSelectBtn" onclick="completeKingSelection()" disabled>
-                    선택 완료
+            <div class="players-waiting">
+                <div id="waitingPlayersList"></div>
+            </div>
+
+            <div id="hostControls" class="hidden">
+                <button class="btn btn-primary" onclick="startGame()" id="startGameBtn" disabled>
+                    게임 시작하기 (최소 2명)
                 </button>
-                <button class="btn btn-secondary" id="kingResetBtn" onclick="resetPlayerSelection()">
-                    선택 초기화
-                </button>
+            </div>
+
+            <div id="guestMessage">
+                <p>방장이 게임을 시작할 때까지 기다려주세요.</p>
             </div>
         </div>
 
-        <!-- 플레이어 모드 UI -->
-        <div class="player-only">
-            <!-- 조합할 카드 영역 -->
-            <div class="selected-cards-area">
-                <div class="section-title">조합할 카드</div>
-                <div class="selected-cards" id="selectedCards"></div>
-                <div class="combination-info" id="combinationInfo">카드를 선택하면 점수가 표시됩니다</div>
+        <!-- 게임 화면 -->
+        <div id="gameScreen" class="hidden">
+            <div class="header">
+                <h1>🎉 칭찬카드게임</h1>
+                <div class="room-info">
+                    <div class="room-code" id="gameRoomCode">ABC123</div>
+                </div>
             </div>
 
-            <!-- 액션 버튼들 -->
-            <div class="action-buttons">
-                <button class="btn btn-primary" id="submitCombination" onclick="submitCombination()" disabled>
-                    조합 완성 (0점)
-                </button>
-                <button class="btn btn-secondary" id="discardCard" onclick="discardCard()" disabled>
-                    카드 1장 버리기
-                </button>
+            <!-- 게임 상태 -->
+            <div class="game-status">
+                <div class="status-row">
+                    <span class="status-label">내 점수</span>
+                    <span class="status-value" id="myScore">0점</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">라운드</span>
+                    <span class="status-value" id="currentRound">1 / 5</span>
+                </div>
             </div>
 
-            <!-- 내 카드 영역 -->
-            <div class="my-cards-area">
-                <div class="section-title">내 카드</div>
-                <div class="my-cards" id="myCards"></div>
+            <!-- 턴 순서 -->
+            <div class="turn-order">
+                <div class="status-label" style="margin-bottom: 8px;">왕 순서</div>
+                <div class="turn-indicator" id="turnIndicator"></div>
+            </div>
+
+            <!-- 왕 모드 UI -->
+            <div class="king-mode king-only">
+                <div class="king-title">👑 당신이 왕입니다!</div>
+                <div class="king-mission" id="kingMission">
+                    미션을 읽고 다른 플레이어들의 칭찬을 들어보세요.
+                </div>
+                
+                <div class="players-selection">
+                    <div class="selection-status" id="selectionStatus">칭찬해준 플레이어 2명을 선택하세요 (0/2)</div>
+                    <div class="players-grid" id="playersGrid"></div>
+                    
+                    <button class="btn btn-king" id="kingSelectBtn" onclick="completeKingSelection()" disabled>
+                        선택 완료
+                    </button>
+                    <button class="btn btn-secondary" id="kingResetBtn" onclick="resetPlayerSelection()">
+                        선택 초기화
+                    </button>
+                </div>
+            </div>
+
+            <!-- 플레이어 모드 UI -->
+            <div class="player-only">
+                <!-- 조합할 카드 영역 -->
+                <div class="selected-cards-area">
+                    <div class="section-title">조합할 카드</div>
+                    <div class="selected-cards" id="selectedCards"></div>
+                    <div class="combination-info" id="combinationInfo">카드를 선택하면 점수가 표시됩니다</div>
+                </div>
+
+                <!-- 액션 버튼들 -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="submitCombination" onclick="submitCombination()" disabled>
+                        조합 완성 (0점)
+                    </button>
+                    <button class="btn btn-secondary" id="discardCard" onclick="discardCard()" disabled>
+                        카드 1장 버리기
+                    </button>
+                </div>
+
+                <!-- 내 카드 영역 -->
+                <div class="my-cards-area">
+                    <div class="section-title">내 카드</div>
+                    <div class="my-cards" id="myCards"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -509,25 +645,14 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // 게임 상태
-        let gameState = {
-            myCards: [],
-            selectedCards: [],
-            players: [
-                { id: 'player1', name: '나', isMe: true },
-                { id: 'player2', name: '플레이어2', isMe: false },
-                { id: 'player3', name: '플레이어3', isMe: false },
-                { id: 'player4', name: '플레이어4', isMe: false },
-                { id: 'player5', name: 'AI봇1', isMe: false },
-                { id: 'player6', name: 'AI봇2', isMe: false }
-            ],
-            currentKingIndex: 0,
-            currentRound: 1,
-            myScore: 0,
-            isMyTurnAsKing: false,
-            selectedPlayers: [],
-            currentMission: ''
-        };
+        // 전역 변수
+        let currentUser = null;
+        let currentRoomCode = null;
+        let gameData = null;
+        let myPlayerData = null;
+        let selectedCards = [];
+        let selectedPlayers = [];
+        let gameListener = null;
 
         // 카드 타입 정의
         const cardTypes = {
@@ -552,6 +677,12 @@
             "내가 팀워크를 발휘했던 순간은?",
             "내가 유머로 분위기를 좋게 만든 경험은?"
         ];
+
+        // URL에서 방 코드 가져오기
+        function getRoomCodeFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('room');
+        }
 
         // 카드 생성 함수
         function createCard(type, emoji, number, isJoker = false) {
@@ -598,6 +729,262 @@
             return deck;
         }
 
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', async function() {
+            currentRoomCode = getRoomCodeFromURL();
+            
+            if (!currentRoomCode) {
+                showError('게임방 코드가 없습니다.');
+                return;
+            }
+
+            try {
+                // 익명 로그인
+                await auth.signInAnonymously();
+                currentUser = auth.currentUser;
+                
+                // 게임방 연결
+                connectToGame();
+                
+            } catch (error) {
+                console.error('로그인 오류:', error);
+                showError('로그인에 실패했습니다.');
+            }
+        });
+
+        // 게임방 연결
+        function connectToGame() {
+            gameListener = db.collection('games').doc(currentRoomCode).onSnapshot(
+                (doc) => {
+                    if (!doc.exists) {
+                        showError('존재하지 않는 게임방입니다.');
+                        return;
+                    }
+
+                    gameData = doc.data();
+                    myPlayerData = gameData.players.find(p => p.id === currentUser.uid);
+                    
+                    if (!myPlayerData) {
+                        showError('이 게임방에 참가하지 않았습니다.');
+                        return;
+                    }
+
+                    updateGameDisplay();
+                },
+                (error) => {
+                    console.error('게임 데이터 리스닝 오류:', error);
+                    showError('게임 연결에 실패했습니다.');
+                }
+            );
+        }
+
+        // 게임 화면 업데이트
+        function updateGameDisplay() {
+            if (gameData.status === 'waiting') {
+                showWaitingRoom();
+            } else if (gameData.status === 'playing') {
+                showGameScreen();
+            } else {
+                showError('게임이 종료되었습니다.');
+            }
+        }
+
+        // 대기실 표시
+        function showWaitingRoom() {
+            hideAllScreens();
+            document.getElementById('waitingRoom').classList.remove('hidden');
+            document.getElementById('roomCodeDisplay').textContent = currentRoomCode;
+            
+            updateWaitingPlayersList();
+            
+            // 방장 권한 확인
+            if (myPlayerData.isHost) {
+                document.getElementById('hostControls').classList.remove('hidden');
+                document.getElementById('guestMessage').classList.add('hidden');
+                
+                const startBtn = document.getElementById('startGameBtn');
+                startBtn.disabled = gameData.players.length < 2;
+                startBtn.textContent = `게임 시작하기 (${gameData.players.length}명)`;
+            } else {
+                document.getElementById('hostControls').classList.add('hidden');
+                document.getElementById('guestMessage').classList.remove('hidden');
+            }
+        }
+
+        // 대기실 플레이어 목록 업데이트
+        function updateWaitingPlayersList() {
+            const listEl = document.getElementById('waitingPlayersList');
+            listEl.innerHTML = gameData.players.map(player => `
+                <div class="player-item">
+                    <span class="player-name">${player.nickname}</span>
+                    ${player.isHost ? '<span class="host-badge">방장</span>' : ''}
+                </div>
+            `).join('');
+        }
+
+        // 게임 시작 (방장만)
+        async function startGame() {
+            if (!myPlayerData.isHost || gameData.players.length < 2) return;
+
+            try {
+                // 카드 덱 생성 및 배분
+                const deck = shuffleDeck(createInitialDeck());
+                const players = [...gameData.players];
+                
+                // 각 플레이어에게 5장씩 배분
+                players.forEach(player => {
+                    player.cards = deck.splice(0, 5);
+                    player.score = 0;
+                });
+
+                // 첫 미션 설정
+                const firstMission = missions[Math.floor(Math.random() * missions.length)];
+
+                // 게임 상태 업데이트
+                await db.collection('games').doc(currentRoomCode).update({
+                    status: 'playing',
+                    players: players,
+                    deck: deck,
+                    currentMission: firstMission,
+                    currentKingIndex: 0,
+                    currentRound: 1,
+                    selectedPlayers: [],
+                    startedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+            } catch (error) {
+                console.error('게임 시작 오류:', error);
+                alert('게임 시작에 실패했습니다.');
+            }
+        }
+
+        // 게임 화면 표시
+        function showGameScreen() {
+            hideAllScreens();
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('gameRoomCode').textContent = currentRoomCode;
+            
+            updateGameUI();
+        }
+
+        // 게임 UI 업데이트
+        function updateGameUI() {
+            const container = document.getElementById('gameContainer');
+            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
+            
+            // 왕 모드/플레이어 모드 설정
+            if (isMyTurnAsKing) {
+                container.classList.add('is-king');
+                updateKingModeUI();
+                
+                // 새 미션일 때 팝업 표시
+                if (gameData.currentMission && !document.getElementById('missionPopup').classList.contains('hidden') === false) {
+                    setTimeout(showMissionPopup, 1000);
+                }
+            } else {
+                container.classList.remove('is-king');
+                updatePlayerModeUI();
+            }
+            
+            updateTurnIndicator();
+            updateGameStatus();
+        }
+
+        // 왕 모드 UI 업데이트
+        function updateKingModeUI() {
+            document.getElementById('kingMission').textContent = gameData.currentMission;
+            document.getElementById('selectionStatus').textContent = 
+                `칭찬해준 플레이어 2명을 선택하세요 (${selectedPlayers.length}/2)`;
+            
+            // 플레이어 선택 그리드 (자신 제외)
+            const playersGrid = document.getElementById('playersGrid');
+            const otherPlayers = gameData.players.filter(p => p.id !== currentUser.uid);
+            
+            playersGrid.innerHTML = otherPlayers.map(player => {
+                const isSelected = selectedPlayers.includes(player.id);
+                return `
+                    <div class="player-card ${isSelected ? 'selected' : ''}" 
+                         onclick="${isSelected ? `unselectPlayer('${player.id}')` : `selectPlayer('${player.id}')`}">
+                        <div class="player-name">${player.nickname}</div>
+                        ${isSelected ? '<div style="color: #ff6b6b;">✓ 선택됨</div>' : '<div>클릭하여 선택</div>'}
+                    </div>
+                `;
+            }).join('');
+            
+            // 버튼 상태
+            document.getElementById('kingSelectBtn').disabled = selectedPlayers.length !== 2;
+        }
+
+        // 플레이어 모드 UI 업데이트
+        function updatePlayerModeUI() {
+            // 내 카드 표시
+            const myCardsEl = document.getElementById('myCards');
+            const myCards = myPlayerData.cards || [];
+            
+            myCardsEl.innerHTML = myCards.map(card => {
+                const isSelected = selectedCards.some(c => c.id === card.id);
+                let cardHTML = createCardHTML(card, false);
+                
+                if(isSelected) {
+                    cardHTML = cardHTML.replace('class="card', 'class="card selected');
+                }
+                
+                return cardHTML;
+            }).join('');
+            
+            // 선택된 카드 표시
+            const selectedCardsEl = document.getElementById('selectedCards');
+            selectedCardsEl.innerHTML = selectedCards.map(card => createCardHTML(card, true)).join('');
+            
+            // 조합 정보 표시
+            const combination = calculateCombinationScore(selectedCards);
+            const combinationInfo = document.getElementById('combinationInfo');
+            
+            if(selectedCards.length === 0) {
+                combinationInfo.textContent = "카드를 선택하여 조합을 만드세요";
+            } else if(combination.score === 0) {
+                combinationInfo.textContent = "더 이상 조합할 수 있는 카드가 없습니다";
+            } else {
+                combinationInfo.textContent = combination.description;
+            }
+            
+            // 버튼 상태 업데이트
+            const submitBtn = document.getElementById('submitCombination');
+            const discardBtn = document.getElementById('discardCard');
+            
+            const canSubmitCombination = combination.score > 0;
+            const canDiscardCard = selectedCards.length === 1;
+            
+            submitBtn.disabled = !canSubmitCombination;
+            submitBtn.textContent = `조합 완성 (${combination.score}점)`;
+            
+            discardBtn.disabled = !canDiscardCard;
+            discardBtn.textContent = "카드 1장 버리기";
+        }
+
+        // 턴 순서 표시 업데이트
+        function updateTurnIndicator() {
+            const turnIndicator = document.getElementById('turnIndicator');
+            turnIndicator.innerHTML = gameData.players.map((player, index) => {
+                let className = 'turn-player';
+                if(index === gameData.currentKingIndex) {
+                    className += ' current-king';
+                } else if(player.id === currentUser.uid) {
+                    className += ' my-turn';
+                }
+                
+                return `<div class="${className}">${player.nickname}</div>`;
+            }).join('');
+        }
+
+        // 게임 상태 업데이트
+        function updateGameStatus() {
+            document.getElementById('myScore').textContent = `${myPlayerData.score || 0}점`;
+            
+            const totalRounds = gameData.players.length;
+            document.getElementById('currentRound').textContent = `${gameData.currentRound} / ${totalRounds}`;
+        }
+
         // 카드 HTML 생성
         function createCardHTML(card, disabled = false) {
             const isJoker = card.isJoker;
@@ -608,7 +995,7 @@
             if(isJoker) {
                 emojiDisplay = card.emoji;
             } else {
-                emojiDisplay = card.emoji.repeat(Math.min(card.number, 3)); // 최대 3개까지만 표시
+                emojiDisplay = card.emoji.repeat(Math.min(card.number, 3));
             }
             
             return `
@@ -714,233 +1101,184 @@
 
         // 카드 선택 토글
         function toggleCardSelection(cardId) {
-            if(gameState.isMyTurnAsKing) return;
+            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
+            if(isMyTurnAsKing) return;
             
-            const card = gameState.myCards.find(c => c.id === cardId);
+            const card = myPlayerData.cards.find(c => c.id === cardId);
             if(!card) return;
             
-            const isSelected = gameState.selectedCards.some(c => c.id === cardId);
+            const isSelected = selectedCards.some(c => c.id === cardId);
             
             if(isSelected) {
-                gameState.selectedCards = gameState.selectedCards.filter(c => c.id !== cardId);
+                selectedCards = selectedCards.filter(c => c.id !== cardId);
             } else {
-                gameState.selectedCards.push(card);
+                selectedCards.push(card);
             }
             
-            updateUI();
+            updatePlayerModeUI();
         }
 
         // 플레이어 선택 (왕 모드)
         function selectPlayer(playerId) {
-            if(!gameState.isMyTurnAsKing) return;
-            if(gameState.selectedPlayers.length >= 2) return;
+            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
+            if(!isMyTurnAsKing) return;
+            if(selectedPlayers.length >= 2) return;
             
-            const player = gameState.players.find(p => p.id === playerId);
-            if(player && !player.isMe && !gameState.selectedPlayers.includes(playerId)) {
-                gameState.selectedPlayers.push(playerId);
-                updateUI();
+            if(!selectedPlayers.includes(playerId)) {
+                selectedPlayers.push(playerId);
+                updateKingModeUI();
             }
         }
 
         // 플레이어 선택 해제 (왕 모드)
         function unselectPlayer(playerId) {
-            if(!gameState.isMyTurnAsKing) return;
+            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
+            if(!isMyTurnAsKing) return;
             
-            gameState.selectedPlayers = gameState.selectedPlayers.filter(id => id !== playerId);
-            updateUI();
+            selectedPlayers = selectedPlayers.filter(id => id !== playerId);
+            updateKingModeUI();
         }
 
         // 플레이어 선택 초기화
         function resetPlayerSelection() {
-            if(!gameState.isMyTurnAsKing) return;
+            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
+            if(!isMyTurnAsKing) return;
             
-            gameState.selectedPlayers = [];
-            updateUI();
+            selectedPlayers = [];
+            updateKingModeUI();
         }
 
         // 조합 완성
-        function submitCombination() {
-            if(gameState.isMyTurnAsKing) return;
+        async function submitCombination() {
+            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
+            if(isMyTurnAsKing) return;
             
-            const combination = calculateCombinationScore(gameState.selectedCards);
-            if(combination.score > 0) {
-                gameState.myScore += combination.score;
+            const combination = calculateCombinationScore(selectedCards);
+            if(combination.score <= 0) return;
+
+            try {
+                // 플레이어 데이터 업데이트
+                const updatedPlayers = [...gameData.players];
+                const myIndex = updatedPlayers.findIndex(p => p.id === currentUser.uid);
+                
+                // 점수 추가
+                updatedPlayers[myIndex].score = (updatedPlayers[myIndex].score || 0) + combination.score;
                 
                 // 선택된 카드들을 내 카드에서 제거
-                gameState.selectedCards.forEach(selectedCard => {
-                    gameState.myCards = gameState.myCards.filter(card => card.id !== selectedCard.id);
+                selectedCards.forEach(selectedCard => {
+                    updatedPlayers[myIndex].cards = updatedPlayers[myIndex].cards.filter(card => card.id !== selectedCard.id);
                 });
                 
-                gameState.selectedCards = [];
+                // 제거된 카드들을 덱에 다시 추가
+                const updatedDeck = [...gameData.deck, ...selectedCards];
                 
+                // Firestore 업데이트
+                await db.collection('games').doc(currentRoomCode).update({
+                    players: updatedPlayers,
+                    deck: updatedDeck
+                });
+                
+                selectedCards = [];
                 alert(`${combination.description}\n${combination.score}점 획득!`);
-                updateUI();
+                
+            } catch (error) {
+                console.error('조합 완성 오류:', error);
+                alert('조합 완성에 실패했습니다.');
             }
         }
 
         // 카드 버리기
-        function discardCard() {
-            if(gameState.isMyTurnAsKing) return;
+        async function discardCard() {
+            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
+            if(isMyTurnAsKing) return;
             
-            if(gameState.selectedCards.length === 1) {
-                const discardedCard = gameState.selectedCards[0];
-                gameState.myCards = gameState.myCards.filter(card => card.id !== discardedCard.id);
-                gameState.selectedCards = [];
+            if(selectedCards.length !== 1) return;
+
+            try {
+                const discardedCard = selectedCards[0];
                 
+                // 플레이어 데이터 업데이트
+                const updatedPlayers = [...gameData.players];
+                const myIndex = updatedPlayers.findIndex(p => p.id === currentUser.uid);
+                
+                // 선택된 카드를 내 카드에서 제거
+                updatedPlayers[myIndex].cards = updatedPlayers[myIndex].cards.filter(card => card.id !== discardedCard.id);
+                
+                // 버린 카드를 덱에 다시 추가
+                const updatedDeck = [...gameData.deck, discardedCard];
+                
+                // Firestore 업데이트
+                await db.collection('games').doc(currentRoomCode).update({
+                    players: updatedPlayers,
+                    deck: updatedDeck
+                });
+                
+                selectedCards = [];
                 alert('카드 1장을 버렸습니다.');
-                updateUI();
+                
+            } catch (error) {
+                console.error('카드 버리기 오류:', error);
+                alert('카드 버리기에 실패했습니다.');
             }
         }
 
         // 왕 선택 완료
-        function completeKingSelection() {
-            if(!gameState.isMyTurnAsKing || gameState.selectedPlayers.length !== 2) return;
-            
-            // 선택받은 플레이어들에게 카드 1장씩 지급 (시뮬레이션)
-            alert(`${gameState.selectedPlayers.map(id => 
-                gameState.players.find(p => p.id === id).name
-            ).join(', ')}님이 선택되었습니다!`);
-            
-            gameState.selectedPlayers = [];
-            nextKingTurn();
-        }
+        async function completeKingSelection() {
+            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
+            if(!isMyTurnAsKing || selectedPlayers.length !== 2) return;
 
-        // 다음 턴 (왕 교체)
-        function nextKingTurn() {
-            // 한 바퀴 돌면 라운드 증가
-            if(gameState.currentKingIndex === gameState.players.length - 1) {
-                gameState.currentRound++;
-            }
-            
-            gameState.currentKingIndex = (gameState.currentKingIndex + 1) % gameState.players.length;
-            
-            // 내가 왕인지 확인
-            const currentKing = gameState.players[gameState.currentKingIndex];
-            gameState.isMyTurnAsKing = currentKing.isMe;
-            
-            if(gameState.isMyTurnAsKing) {
+            try {
+                // 선택받은 플레이어들에게 카드 배분
+                const updatedPlayers = [...gameData.players];
+                let updatedDeck = [...gameData.deck];
+                
+                selectedPlayers.forEach(playerId => {
+                    const playerIndex = updatedPlayers.findIndex(p => p.id === playerId);
+                    if(playerIndex !== -1 && updatedDeck.length > 0) {
+                        // 덱에서 카드 1장 가져오기
+                        const newCard = updatedDeck.pop();
+                        updatedPlayers[playerIndex].cards.push(newCard);
+                    }
+                });
+                
+                // 다음 왕으로 턴 넘기기
+                const nextKingIndex = (gameData.currentKingIndex + 1) % gameData.players.length;
+                let nextRound = gameData.currentRound;
+                
+                // 한 바퀴 돌면 라운드 증가
+                if(nextKingIndex === 0) {
+                    nextRound++;
+                }
+                
                 // 새 미션 설정
-                gameState.currentMission = missions[Math.floor(Math.random() * missions.length)];
-                setTimeout(showMissionPopup, 1000);
-            }
-            
-            updateUI();
-        }
-
-        // 턴 순서 표시 업데이트
-        function updateTurnIndicator() {
-            const turnIndicator = document.getElementById('turnIndicator');
-            turnIndicator.innerHTML = gameState.players.map((player, index) => {
-                let className = 'turn-player';
-                if(index === gameState.currentKingIndex) {
-                    className += ' current-king';
-                } else if(player.isMe) {
-                    className += ' my-turn';
-                }
+                const newMission = missions[Math.floor(Math.random() * missions.length)];
                 
-                return `<div class="${className}">${player.name}</div>`;
-            }).join('');
-        }
-
-        // 왕 모드 UI 업데이트
-        function updateKingModeUI() {
-            document.getElementById('kingMission').textContent = gameState.currentMission;
-            document.getElementById('selectionStatus').textContent = 
-                `칭찬해준 플레이어 2명을 선택하세요 (${gameState.selectedPlayers.length}/2)`;
-            
-            // 플레이어 선택 그리드
-            const playersGrid = document.getElementById('playersGrid');
-            playersGrid.innerHTML = gameState.players
-                .filter(p => !p.isMe)
-                .map(player => {
-                    const isSelected = gameState.selectedPlayers.includes(player.id);
-                    return `
-                        <div class="player-card ${isSelected ? 'selected' : ''}" 
-                             onclick="${isSelected ? `unselectPlayer('${player.id}')` : `selectPlayer('${player.id}')`}">
-                            <div class="player-name">${player.name}</div>
-                            ${isSelected ? '<div style="color: #ff6b6b;">✓ 선택됨</div>' : '<div>클릭하여 선택</div>'}
-                        </div>
-                    `;
-                }).join('');
-            
-            // 버튼 상태
-            document.getElementById('kingSelectBtn').disabled = gameState.selectedPlayers.length !== 2;
-        }
-
-        // UI 업데이트
-        function updateUI() {
-            const container = document.getElementById('gameContainer');
-            
-            // 왕 모드/플레이어 모드 클래스 설정
-            if(gameState.isMyTurnAsKing) {
-                container.classList.add('is-king');
-                updateKingModeUI();
-            } else {
-                container.classList.remove('is-king');
-                updatePlayerModeUI();
-            }
-            
-            updateTurnIndicator();
-            updateGameStatus();
-        }
-
-        // 플레이어 모드 UI 업데이트
-        function updatePlayerModeUI() {
-            // 내 카드 표시 (왕이 아닐 때만 카드 조작 가능)
-            const myCardsEl = document.getElementById('myCards');
-            myCardsEl.innerHTML = gameState.myCards.map(card => {
-                const isSelected = gameState.selectedCards.some(c => c.id === card.id);
-                let cardHTML = createCardHTML(card, false);
+                // Firestore 업데이트
+                await db.collection('games').doc(currentRoomCode).update({
+                    players: updatedPlayers,
+                    deck: updatedDeck,
+                    currentKingIndex: nextKingIndex,
+                    currentRound: nextRound,
+                    currentMission: newMission,
+                    selectedPlayers: []
+                });
                 
-                if(isSelected) {
-                    cardHTML = cardHTML.replace('class="card', 'class="card selected');
-                }
+                const selectedPlayerNames = selectedPlayers.map(id => 
+                    gameData.players.find(p => p.id === id).nickname
+                );
                 
-                return cardHTML;
-            }).join('');
-            
-            // 선택된 카드 표시
-            const selectedCardsEl = document.getElementById('selectedCards');
-            selectedCardsEl.innerHTML = gameState.selectedCards.map(card => createCardHTML(card, true)).join('');
-            
-            // 조합 정보 표시
-            const combination = calculateCombinationScore(gameState.selectedCards);
-            const combinationInfo = document.getElementById('combinationInfo');
-            
-            if(gameState.selectedCards.length === 0) {
-                combinationInfo.textContent = "카드를 선택하여 조합을 만드세요";
-            } else if(combination.score === 0) {
-                combinationInfo.textContent = "더 이상 조합할 수 있는 카드가 없습니다";
-            } else {
-                combinationInfo.textContent = combination.description;
+                alert(`${selectedPlayerNames.join(', ')}님이 선택되었습니다!`);
+                selectedPlayers = [];
+                
+            } catch (error) {
+                console.error('왕 선택 완료 오류:', error);
+                alert('선택 완료에 실패했습니다.');
             }
-            
-            // 버튼 상태 업데이트
-            const submitBtn = document.getElementById('submitCombination');
-            const discardBtn = document.getElementById('discardCard');
-            
-            const canSubmitCombination = combination.score > 0;
-            const canDiscardCard = gameState.selectedCards.length === 1;
-            
-            submitBtn.disabled = !canSubmitCombination;
-            submitBtn.textContent = `조합 완성 (${combination.score}점)`;
-            
-            discardBtn.disabled = !canDiscardCard;
-            discardBtn.textContent = "카드 1장 버리기";
-        }
-
-        // 게임 상태 업데이트
-        function updateGameStatus() {
-            document.getElementById('myScore').textContent = `${gameState.myScore}점`;
-            
-            // 총 라운드는 플레이어 수만큼 (6명이면 5라운드)
-            const totalRounds = gameState.players.length - 1;
-            document.getElementById('currentRound').textContent = `${gameState.currentRound} / ${totalRounds}`;
         }
 
         // 미션 팝업 표시
         function showMissionPopup() {
-            document.getElementById('missionText').textContent = gameState.currentMission;
+            document.getElementById('missionText').textContent = gameData.currentMission;
             document.getElementById('missionPopup').classList.remove('hidden');
         }
 
@@ -949,27 +1287,25 @@
             document.getElementById('missionPopup').classList.add('hidden');
         }
 
-        // 게임 초기화
-        function initGame() {
-            const deck = shuffleDeck(createInitialDeck());
-            
-            // 내 카드 5장 배분
-            gameState.myCards = deck.splice(0, 5);
-            
-            // 첫 번째 플레이어가 나인지 확인
-            gameState.isMyTurnAsKing = gameState.currentKingIndex === 0;
-            
-            if(gameState.isMyTurnAsKing) {
-                gameState.currentMission = missions[0];
-                setTimeout(showMissionPopup, 1500);
-            }
-            
-            updateUI();
+        // 화면 표시 헬퍼 함수들
+        function hideAllScreens() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('errorScreen').classList.add('hidden');
+            document.getElementById('waitingRoom').classList.add('hidden');
+            document.getElementById('gameScreen').classList.add('hidden');
         }
 
-        // 페이지 로드 시 게임 시작
-        document.addEventListener('DOMContentLoaded', function() {
-            initGame();
+        function showError(message) {
+            hideAllScreens();
+            document.getElementById('errorScreen').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // 페이지 언로드 시 리스너 정리
+        window.addEventListener('beforeunload', function() {
+            if(gameListener) {
+                gameListener();
+            }
         });
     </script>
 </body>
