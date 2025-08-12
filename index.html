@@ -362,7 +362,7 @@
                             id: currentUser.uid,
                             nickname: nickname,
                             isHost: true,
-                            joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            joinedAt: new Date(),
                             score: 0,
                             cards: []
                         }
@@ -455,7 +455,7 @@
                     id: currentUser.uid,
                     nickname: nickname,
                     isHost: false,
-                    joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    joinedAt: new Date(),
                     score: 0,
                     cards: []
                 };
