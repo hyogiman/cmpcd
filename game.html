@@ -16,62 +16,104 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: white;
+            padding: 10px;
+            font-size: 16px;
         }
 
         .game-container {
-            max-width: 1200px;
+            max-width: 500px;
             margin: 0 auto;
-            padding: 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .game-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255,255,255,0.1);
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* 게임 상태 정보 */
+        .game-status {
+            background: rgba(255,255,255,0.15);
             padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
             backdrop-filter: blur(10px);
         }
 
-        .player-info {
+        .status-row {
             display: flex;
-            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
-        .info-item {
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .status-value {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        /* 턴 순서 표시 */
+        .turn-order {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             text-align: center;
         }
 
-        .info-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 5px;
+        .turn-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .info-value {
-            font-size: 1.2rem;
+        .turn-player {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .turn-player.current-king {
+            background: linear-gradient(45deg, #ffd700, #ffed4a);
+            color: #333;
+            font-weight: bold;
+            transform: scale(1.1);
+        }
+
+        .turn-player.my-turn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
             font-weight: bold;
         }
 
-        /* 카드 스타일 */
+        /* 카드 스타일 - 모바일 최적화 */
         .card {
-            width: 80px;
-            height: 120px;
+            width: 60px;
+            height: 90px;
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             border: 2px solid #ddd;
             display: flex;
             flex-direction: column;
@@ -80,6 +122,7 @@
             transition: all 0.3s ease;
             color: #333;
             user-select: none;
+            margin: 2px;
         }
 
         .card:hover {
@@ -88,24 +131,29 @@
         }
 
         .card.selected {
-            transform: translateY(-20px);
+            transform: translateY(-15px);
             border-color: #ff6b6b;
             box-shadow: 0 12px 30px rgba(255,107,107,0.4);
         }
 
+        .card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .card-number-top {
             position: absolute;
-            top: 5px;
-            left: 8px;
-            font-size: 0.8rem;
+            top: 3px;
+            left: 6px;
+            font-size: 0.7rem;
             font-weight: bold;
         }
 
         .card-number-bottom {
             position: absolute;
-            bottom: 5px;
-            right: 8px;
-            font-size: 0.8rem;
+            bottom: 3px;
+            right: 6px;
+            font-size: 0.7rem;
             font-weight: bold;
             transform: rotate(180deg);
         }
@@ -116,11 +164,11 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 10px 5px;
+            padding: 5px;
         }
 
         .card-emoji {
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             line-height: 1;
         }
 
@@ -135,11 +183,11 @@
 
         /* 카드 영역들 */
         .selected-cards-area {
-            min-height: 140px;
+            min-height: 110px;
             background: rgba(255,255,255,0.1);
             border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
             backdrop-filter: blur(10px);
             border: 2px dashed rgba(255,255,255,0.3);
         }
@@ -147,53 +195,54 @@
         .selected-cards {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 5px;
             flex-wrap: wrap;
+            margin-bottom: 10px;
         }
 
         .combination-info {
             text-align: center;
-            margin-top: 15px;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
+            line-height: 1.3;
         }
 
         .my-cards-area {
             background: rgba(255,255,255,0.1);
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px;
             backdrop-filter: blur(10px);
+            margin-bottom: 20px;
         }
 
         .my-cards {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 5px;
             flex-wrap: wrap;
         }
 
         .section-title {
             text-align: center;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
+            margin-bottom: 12px;
+            font-size: 1rem;
             font-weight: bold;
         }
 
         /* 액션 버튼들 */
         .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
 
         .btn {
-            padding: 12px 24px;
+            width: 100%;
+            padding: 15px;
             border: none;
             border-radius: 25px;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-bottom: 10px;
         }
 
         .btn-primary {
@@ -206,7 +255,12 @@
             color: white;
         }
 
-        .btn:hover {
+        .btn-king {
+            background: linear-gradient(45deg, #ffd700, #ffed4a);
+            color: #333;
+        }
+
+        .btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
@@ -217,12 +271,40 @@
             transform: none;
         }
 
-        /* 플레이어 목록 */
-        .players-list {
+        /* 왕 모드 UI */
+        .king-mode {
+            background: rgba(255,215,0,0.2);
+            border: 2px solid #ffd700;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .king-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .king-mission {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        /* 플레이어 선택 UI */
+        .players-selection {
+            margin-top: 15px;
+        }
+
+        .players-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 30px;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         .player-card {
@@ -230,19 +312,18 @@
             padding: 15px;
             border-radius: 10px;
             text-align: center;
-            backdrop-filter: blur(10px);
-            border: 2px solid transparent;
+            cursor: pointer;
             transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
 
-        .player-card.current-king {
-            border-color: #ffd700;
-            background: rgba(255,215,0,0.2);
+        .player-card:hover {
+            background: rgba(255,255,255,0.2);
         }
 
-        .player-card.selected-player {
-            border-color: #ff6b6b;
+        .player-card.selected {
             background: rgba(255,107,107,0.2);
+            border-color: #ff6b6b;
         }
 
         .player-name {
@@ -250,9 +331,10 @@
             margin-bottom: 5px;
         }
 
-        .player-stats {
-            font-size: 0.9rem;
-            opacity: 0.8;
+        .selection-status {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
         }
 
         /* 미션 팝업 */
@@ -267,6 +349,7 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 20px;
         }
 
         .mission-content {
@@ -274,13 +357,13 @@
             color: #333;
             padding: 30px;
             border-radius: 15px;
-            max-width: 500px;
+            max-width: 400px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
         .mission-text {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             margin-bottom: 20px;
             line-height: 1.4;
         }
@@ -288,86 +371,167 @@
         .hidden {
             display: none;
         }
+
+        /* 게임 모드별 숨김 */
+        .king-only {
+            display: none;
+        }
+
+        .player-only {
+            display: block;
+        }
+
+        .is-king .king-only {
+            display: block;
+        }
+
+        .is-king .player-only {
+            display: none;
+        }
+
+        /* 반응형 */
+        @media (max-width: 360px) {
+            .card {
+                width: 50px;
+                height: 75px;
+            }
+            
+            .card-emoji {
+                font-size: 0.8rem;
+            }
+            
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="game-container">
+    <div class="game-container" id="gameContainer">
         <div class="header">
             <h1>🎉 칭찬카드게임</h1>
             <p>서로를 칭찬하며 카드를 모아보세요!</p>
         </div>
 
-        <div class="game-info">
-            <div class="player-info">
-                <div class="info-item">
-                    <div class="info-label">내 점수</div>
-                    <div class="info-value" id="myScore">0점</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">라운드</div>
-                    <div class="info-value" id="currentRound">1 / 30</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">현재 왕</div>
-                    <div class="info-value" id="currentKing">플레이어1</div>
-                </div>
+        <!-- 게임 상태 -->
+        <div class="game-status">
+            <div class="status-row">
+                <span class="status-label">내 점수</span>
+                <span class="status-value" id="myScore">0점</span>
             </div>
-            <div class="info-item">
-                <div class="info-label">덱 잔여</div>
-                <div class="info-value" id="deckCount">12장</div>
+            <div class="status-row">
+                <span class="status-label">라운드</span>
+                <span class="status-value" id="currentRound">1 / 30</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">내 카드</span>
+                <span class="status-value" id="myCardCount">5장</span>
             </div>
         </div>
 
-        <!-- 조합할 카드 영역 -->
-        <div class="selected-cards-area">
-            <div class="section-title">조합할 카드를 선택하세요</div>
-            <div class="selected-cards" id="selectedCards"></div>
-            <div class="combination-info" id="combinationInfo">카드를 선택하면 점수가 표시됩니다</div>
+        <!-- 턴 순서 -->
+        <div class="turn-order">
+            <div class="status-label" style="margin-bottom: 8px;">왕 순서</div>
+            <div class="turn-indicator" id="turnIndicator"></div>
         </div>
 
-        <div class="action-buttons">
-            <button class="btn btn-primary" id="submitCombination" disabled>조합 완성 (0점)</button>
-            <button class="btn btn-secondary" id="discardCard" disabled>카드 버리기</button>
-            <button class="btn btn-primary" id="kingSelectPlayers" style="display: none;">플레이어 선택 완료</button>
+        <!-- 왕 모드 UI -->
+        <div class="king-mode king-only">
+            <div class="king-title">👑 당신이 왕입니다!</div>
+            <div class="king-mission" id="kingMission">
+                미션을 읽고 다른 플레이어들의 칭찬을 들어보세요.
+            </div>
+            
+            <div class="players-selection">
+                <div class="selection-status" id="selectionStatus">칭찬해준 플레이어 2명을 선택하세요 (0/2)</div>
+                <div class="players-grid" id="playersGrid"></div>
+                
+                <button class="btn btn-king" id="kingSelectBtn" onclick="completeKingSelection()" disabled>
+                    선택 완료
+                </button>
+                <button class="btn btn-secondary" id="kingResetBtn" onclick="resetPlayerSelection()">
+                    선택 초기화
+                </button>
+            </div>
         </div>
 
-        <!-- 내 카드 영역 -->
-        <div class="my-cards-area">
-            <div class="section-title">내 카드 (5장)</div>
-            <div class="my-cards" id="myCards"></div>
-        </div>
+        <!-- 플레이어 모드 UI -->
+        <div class="player-only">
+            <!-- 조합할 카드 영역 -->
+            <div class="selected-cards-area">
+                <div class="section-title">조합할 카드</div>
+                <div class="selected-cards" id="selectedCards"></div>
+                <div class="combination-info" id="combinationInfo">카드를 선택하면 점수가 표시됩니다</div>
+            </div>
 
-        <!-- 다른 플레이어들 -->
-        <div class="players-list" id="playersList"></div>
+            <!-- 액션 버튼들 -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="submitCombination" onclick="submitCombination()" disabled>
+                    조합 완성 (0점)
+                </button>
+                <button class="btn btn-secondary" id="discardCard" onclick="discardCard()" disabled>
+                    카드 1장 버리기
+                </button>
+            </div>
+
+            <!-- 내 카드 영역 -->
+            <div class="my-cards-area">
+                <div class="section-title">내 카드</div>
+                <div class="my-cards" id="myCards"></div>
+            </div>
+        </div>
     </div>
 
     <!-- 미션 팝업 -->
     <div class="mission-popup hidden" id="missionPopup">
         <div class="mission-content">
-            <h2>👑 왕의 미션</h2>
-            <div class="mission-text" id="missionText">내가 어려운 상황에서 침착하게 대처했던 순간은?</div>
-            <button class="btn btn-primary" onclick="closeMissionPopup()">미션 시작!</button>
+            <h2>👑 새로운 미션</h2>
+            <div class="mission-text" id="missionText"></div>
+            <button class="btn btn-primary" onclick="closeMissionPopup()">시작!</button>
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
     <script>
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3IwL7hYsWIT6wRpenGXwqvSBtV_WIx-M",
+            authDomain: "complimentcardgame.firebaseapp.com",
+            projectId: "complimentcardgame",
+            storageBucket: "complimentcardgame.firebasestorage.app",
+            messagingSenderId: "766205964734",
+            appId: "1:766205964734:web:0aa711ffc46f96e51889ef",
+            measurementId: "G-P7KM5ETH2J"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
         // 게임 상태
         let gameState = {
             myCards: [],
             selectedCards: [],
             players: [
-                { id: 1, name: '플레이어1', cards: 5, score: 0, isKing: true, selected: false },
-                { id: 2, name: '플레이어2', cards: 5, score: 0, isKing: false, selected: false },
-                { id: 3, name: '플레이어3', cards: 5, score: 0, isKing: false, selected: false },
-                { id: 4, name: '플레이어4', cards: 5, score: 0, isKing: false, selected: false },
-                { id: 5, name: 'AI봇1', cards: 5, score: 0, isKing: false, selected: false },
-                { id: 6, name: 'AI봇2', cards: 5, score: 0, isKing: false, selected: false }
+                { id: 'player1', name: '나', isMe: true },
+                { id: 'player2', name: '플레이어2', isMe: false },
+                { id: 'player3', name: '플레이어3', isMe: false },
+                { id: 'player4', name: '플레이어4', isMe: false },
+                { id: 'player5', name: 'AI봇1', isMe: false },
+                { id: 'player6', name: 'AI봇2', isMe: false }
             ],
+            currentKingIndex: 0,
             currentRound: 1,
-            deckCount: 12,
             myScore: 0,
-            isMyTurnAsKing: true,
-            selectedPlayers: 0
+            isMyTurnAsKing: false,
+            selectedPlayers: [],
+            currentMission: '',
+            actionTaken: false // 이번 턴에 이미 액션을 했는지
         };
 
         // 카드 타입 정의
@@ -386,7 +550,12 @@
             "내가 문제 해결 능력을 보여준 사례는?",
             "내가 소통을 잘했던 경험은?",
             "내가 성장하는 모습을 보여준 때는?",
-            "내가 배려심을 발휘했던 순간은?"
+            "내가 배려심을 발휘했던 순간은?",
+            "내가 동료들을 격려했던 경험은?",
+            "내가 새로운 것을 학습하는 모습을 보여준 때는?",
+            "내가 책임감 있게 업무를 마무리한 경험은?",
+            "내가 팀워크를 발휘했던 순간은?",
+            "내가 유머로 분위기를 좋게 만든 경험은?"
         ];
 
         // 카드 생성 함수
@@ -435,19 +604,20 @@
         }
 
         // 카드 HTML 생성
-        function createCardHTML(card) {
+        function createCardHTML(card, disabled = false) {
             const isJoker = card.isJoker;
             const jokerClass = isJoker ? (card.isJoker === 'bomb' ? 'joker-card bomb-joker' : 'joker-card') : '';
+            const disabledClass = disabled ? 'disabled' : '';
             
             let emojiDisplay = '';
             if(isJoker) {
                 emojiDisplay = card.emoji;
             } else {
-                emojiDisplay = card.emoji.repeat(card.number);
+                emojiDisplay = card.emoji.repeat(Math.min(card.number, 3)); // 최대 3개까지만 표시
             }
             
             return `
-                <div class="card ${jokerClass}" data-id="${card.id}" onclick="toggleCardSelection('${card.id}')">
+                <div class="card ${jokerClass} ${disabledClass}" data-id="${card.id}" onclick="${disabled ? '' : `toggleCardSelection('${card.id}')`}">
                     ${!isJoker ? `<div class="card-number-top">${card.number}</div>` : ''}
                     <div class="card-center">
                         <div class="card-emoji">${emojiDisplay}</div>
@@ -459,7 +629,7 @@
 
         // 카드 조합 점수 계산
         function calculateCombinationScore(cards) {
-            if(cards.length < 2) return { score: 0, description: '카드를 더 선택하세요' };
+            if(cards.length < 2) return { score: 0, description: '카드를 2장 이상 선택하세요' };
             
             const jokers = cards.filter(c => c.isJoker);
             const normalCards = cards.filter(c => !c.isJoker);
@@ -476,12 +646,26 @@
                 numberGroups[card.number].push(card);
             });
             
-            const maxSameNumber = Math.max(...Object.values(numberGroups).map(group => group.length));
+            const numberGroupSizes = Object.values(numberGroups).map(group => group.length);
+            const maxSameNumber = Math.max(...numberGroupSizes);
             
             if(maxSameNumber >= 2) {
                 const scores = { 2: 2, 3: 5, 4: 10, 5: 20 };
                 baseScore = scores[maxSameNumber] || 0;
                 description = `같은 숫자 ${maxSameNumber}장 (${baseScore}점)`;
+                
+                // 특별 조합 확인 (같은 숫자 4장)
+                if(maxSameNumber === 4) {
+                    const sameNumberCards = Object.values(numberGroups).find(group => group.length === 4);
+                    const types = sameNumberCards.map(card => card.type);
+                    const isAllAnimals = types.every(type => type === 'animal');
+                    const isAllFruits = types.every(type => type === 'fruit');
+                    
+                    if(isAllAnimals || isAllFruits) {
+                        baseScore = 20;
+                        description = isAllAnimals ? '동물농장 (20점)' : '과일가게 (20점)';
+                    }
+                }
             }
             
             // 연속 숫자 확인 (같은 이모지)
@@ -492,7 +676,7 @@
             });
             
             for(let emoji in emojiGroups) {
-                const numbers = emojiGroups[emoji].sort((a,b) => a-b);
+                const numbers = [...new Set(emojiGroups[emoji])].sort((a,b) => a-b);
                 let consecutive = 1;
                 let maxConsecutive = 1;
                 
@@ -520,29 +704,13 @@
                 }
             }
             
-            // 특별 조합 확인
-            if(maxSameNumber === 4) {
-                const sameNumberCards = Object.values(numberGroups).find(group => group.length === 4);
-                const types = sameNumberCards.map(card => card.type);
-                const isAllAnimals = types.every(type => type === 'animal');
-                const isAllFruits = types.every(type => type === 'fruit');
-                
-                if(isAllAnimals) {
-                    baseScore = 20;
-                    description = '동물농장 (20점)';
-                } else if(isAllFruits) {
-                    baseScore = 20;
-                    description = '과일가게 (20점)';
-                }
-            }
-            
             // 조커 효과 적용
             let finalScore = baseScore;
             if(jokers.length > 0) {
                 const hasGoodJoker = jokers.some(j => j.isJoker === 'good');
                 if(hasGoodJoker && baseScore > 0) {
                     finalScore = baseScore * 2;
-                    description += ' (조커 2배!)';
+                    description += ' (⭐조커 2배!)';
                 }
             }
             
@@ -551,6 +719,8 @@
 
         // 카드 선택 토글
         function toggleCardSelection(cardId) {
+            if(gameState.isMyTurnAsKing || gameState.actionTaken) return;
+            
             const card = gameState.myCards.find(c => c.id === cardId);
             if(!card) return;
             
@@ -565,82 +735,38 @@
             updateUI();
         }
 
-        // 플레이어 선택
+        // 플레이어 선택 (왕 모드)
         function selectPlayer(playerId) {
             if(!gameState.isMyTurnAsKing) return;
-            if(gameState.selectedPlayers >= 2) return;
+            if(gameState.selectedPlayers.length >= 2) return;
             
             const player = gameState.players.find(p => p.id === playerId);
-            if(player && !player.selected) {
-                player.selected = true;
-                gameState.selectedPlayers++;
+            if(player && !player.isMe && !gameState.selectedPlayers.includes(playerId)) {
+                gameState.selectedPlayers.push(playerId);
                 updateUI();
             }
         }
 
-        // UI 업데이트
-        function updateUI() {
-            // 내 카드 표시
-            const myCardsEl = document.getElementById('myCards');
-            myCardsEl.innerHTML = gameState.myCards.map(card => {
-                const isSelected = gameState.selectedCards.some(c => c.id === card.id);
-                return createCardHTML(card).replace('class="card', `class="card ${isSelected ? 'selected' : ''}`);
-            }).join('');
+        // 플레이어 선택 해제 (왕 모드)
+        function unselectPlayer(playerId) {
+            if(!gameState.isMyTurnAsKing) return;
             
-            // 선택된 카드 표시
-            const selectedCardsEl = document.getElementById('selectedCards');
-            selectedCardsEl.innerHTML = gameState.selectedCards.map(card => createCardHTML(card)).join('');
-            
-            // 조합 정보 표시
-            const combination = calculateCombinationScore(gameState.selectedCards);
-            document.getElementById('combinationInfo').textContent = combination.description;
-            
-            // 버튼 상태 업데이트
-            const submitBtn = document.getElementById('submitCombination');
-            submitBtn.disabled = combination.score === 0;
-            submitBtn.textContent = `조합 완성 (${combination.score}점)`;
-            
-            const discardBtn = document.getElementById('discardCard');
-            discardBtn.disabled = gameState.selectedCards.length !== 1;
-            
-            // 왕 모드 버튼
-            const kingBtn = document.getElementById('kingSelectPlayers');
-            if(gameState.isMyTurnAsKing) {
-                kingBtn.style.display = 'block';
-                kingBtn.disabled = gameState.selectedPlayers !== 2;
-                kingBtn.textContent = `플레이어 선택 완료 (${gameState.selectedPlayers}/2)`;
-            } else {
-                kingBtn.style.display = 'none';
-            }
-            
-            // 플레이어 목록 업데이트
-            updatePlayersList();
-            
-            // 게임 정보 업데이트
-            document.getElementById('myScore').textContent = `${gameState.myScore}점`;
-            document.getElementById('currentRound').textContent = `${gameState.currentRound} / 30`;
-            document.getElementById('deckCount').textContent = `${gameState.deckCount}장`;
-            
-            const currentKing = gameState.players.find(p => p.isKing);
-            document.getElementById('currentKing').textContent = currentKing ? currentKing.name : '없음';
+            gameState.selectedPlayers = gameState.selectedPlayers.filter(id => id !== playerId);
+            updateUI();
         }
 
-        // 플레이어 목록 업데이트
-        function updatePlayersList() {
-            const playersEl = document.getElementById('playersList');
-            playersEl.innerHTML = gameState.players.map(player => `
-                <div class="player-card ${player.isKing ? 'current-king' : ''} ${player.selected ? 'selected-player' : ''}" 
-                     onclick="selectPlayer(${player.id})">
-                    <div class="player-name">${player.name} ${player.isKing ? '👑' : ''}</div>
-                    <div class="player-stats">
-                        카드: ${player.cards}장 | 점수: ${player.score}점
-                    </div>
-                </div>
-            `).join('');
+        // 플레이어 선택 초기화
+        function resetPlayerSelection() {
+            if(!gameState.isMyTurnAsKing) return;
+            
+            gameState.selectedPlayers = [];
+            updateUI();
         }
 
         // 조합 완성
         function submitCombination() {
+            if(gameState.isMyTurnAsKing || gameState.actionTaken) return;
+            
             const combination = calculateCombinationScore(gameState.selectedCards);
             if(combination.score > 0) {
                 gameState.myScore += combination.score;
@@ -651,7 +777,7 @@
                 });
                 
                 gameState.selectedCards = [];
-                gameState.deckCount += combination.score > 0 ? gameState.selectedCards.length : 0;
+                gameState.actionTaken = true;
                 
                 alert(`${combination.description}\n${combination.score}점 획득!`);
                 updateUI();
@@ -660,70 +786,176 @@
 
         // 카드 버리기
         function discardCard() {
+            if(gameState.isMyTurnAsKing || gameState.actionTaken) return;
+            
             if(gameState.selectedCards.length === 1) {
                 const discardedCard = gameState.selectedCards[0];
                 gameState.myCards = gameState.myCards.filter(card => card.id !== discardedCard.id);
                 gameState.selectedCards = [];
-                gameState.deckCount++;
+                gameState.actionTaken = true;
+                
+                alert('카드 1장을 버렸습니다.');
                 updateUI();
             }
         }
 
-        // 미션 팝업
-        function showMissionPopup() {
-            const randomMission = missions[Math.floor(Math.random() * missions.length)];
-            document.getElementById('missionText').textContent = randomMission;
-            document.getElementById('missionPopup').classList.remove('hidden');
-        }
-
-        function closeMissionPopup() {
-            document.getElementById('missionPopup').classList.add('hidden');
-        }
-
-        // 왕 플레이어 선택 완료
+        // 왕 선택 완료
         function completeKingSelection() {
-            if(gameState.selectedPlayers === 2) {
-                // 선택받은 플레이어들에게 카드 1장씩 지급 (시뮬레이션)
-                gameState.players.forEach(player => {
-                    if(player.selected) {
-                        player.cards++;
-                        player.selected = false;
-                    }
-                });
-                
-                gameState.deckCount -= 2;
-                gameState.selectedPlayers = 0;
-                gameState.isMyTurnAsKing = false;
-                
-                // 다음 턴으로
-                nextTurn();
-            }
+            if(!gameState.isMyTurnAsKing || gameState.selectedPlayers.length !== 2) return;
+            
+            // 선택받은 플레이어들에게 카드 1장씩 지급 (시뮬레이션)
+            alert(`${gameState.selectedPlayers.map(id => 
+                gameState.players.find(p => p.id === id).name
+            ).join(', ')}님이 선택되었습니다!`);
+            
+            gameState.selectedPlayers = [];
+            nextTurn();
         }
 
         // 다음 턴
         function nextTurn() {
             gameState.currentRound++;
+            gameState.currentKingIndex = (gameState.currentKingIndex + 1) % gameState.players.length;
+            gameState.actionTaken = false;
             
-            // 왕 변경 (시뮬레이션)
-            const currentKingIndex = gameState.players.findIndex(p => p.isKing);
-            gameState.players[currentKingIndex].isKing = false;
+            // 내가 왕인지 확인
+            const currentKing = gameState.players[gameState.currentKingIndex];
+            gameState.isMyTurnAsKing = currentKing.isMe;
             
-            const nextKingIndex = (currentKingIndex + 1) % gameState.players.length;
-            gameState.players[nextKingIndex].isKing = true;
-            
-            // 내가 다시 왕이 되면
-            if(nextKingIndex === 0) {
-                gameState.isMyTurnAsKing = true;
+            if(gameState.isMyTurnAsKing) {
+                // 새 미션 설정
+                gameState.currentMission = missions[Math.floor(Math.random() * missions.length)];
                 setTimeout(showMissionPopup, 1000);
             }
             
             updateUI();
         }
 
-        // 이벤트 리스너
-        document.getElementById('submitCombination').addEventListener('click', submitCombination);
-        document.getElementById('discardCard').addEventListener('click', discardCard);
-        document.getElementById('kingSelectPlayers').addEventListener('click', completeKingSelection);
+        // 턴 순서 표시 업데이트
+        function updateTurnIndicator() {
+            const turnIndicator = document.getElementById('turnIndicator');
+            turnIndicator.innerHTML = gameState.players.map((player, index) => {
+                let className = 'turn-player';
+                if(index === gameState.currentKingIndex) {
+                    className += ' current-king';
+                } else if(player.isMe) {
+                    className += ' my-turn';
+                }
+                
+                return `<div class="${className}">${player.name}</div>`;
+            }).join('');
+        }
+
+        // 왕 모드 UI 업데이트
+        function updateKingModeUI() {
+            document.getElementById('kingMission').textContent = gameState.currentMission;
+            document.getElementById('selectionStatus').textContent = 
+                `칭찬해준 플레이어 2명을 선택하세요 (${gameState.selectedPlayers.length}/2)`;
+            
+            // 플레이어 선택 그리드
+            const playersGrid = document.getElementById('playersGrid');
+            playersGrid.innerHTML = gameState.players
+                .filter(p => !p.isMe)
+                .map(player => {
+                    const isSelected = gameState.selectedPlayers.includes(player.id);
+                    return `
+                        <div class="player-card ${isSelected ? 'selected' : ''}" 
+                             onclick="${isSelected ? `unselectPlayer('${player.id}')` : `selectPlayer('${player.id}')`}">
+                            <div class="player-name">${player.name}</div>
+                            ${isSelected ? '<div style="color: #ff6b6b;">✓ 선택됨</div>' : '<div>클릭하여 선택</div>'}
+                        </div>
+                    `;
+                }).join('');
+            
+            // 버튼 상태
+            document.getElementById('kingSelectBtn').disabled = gameState.selectedPlayers.length !== 2;
+        }
+
+        // UI 업데이트
+        function updateUI() {
+            const container = document.getElementById('gameContainer');
+            
+            // 왕 모드/플레이어 모드 클래스 설정
+            if(gameState.isMyTurnAsKing) {
+                container.classList.add('is-king');
+                updateKingModeUI();
+            } else {
+                container.classList.remove('is-king');
+                updatePlayerModeUI();
+            }
+            
+            updateTurnIndicator();
+            updateGameStatus();
+        }
+
+        // 플레이어 모드 UI 업데이트
+        function updatePlayerModeUI() {
+            // 내 카드 표시 (왕이 아닐 때만 카드 조작 가능)
+            const myCardsEl = document.getElementById('myCards');
+            myCardsEl.innerHTML = gameState.myCards.map(card => {
+                const isSelected = gameState.selectedCards.some(c => c.id === card.id);
+                const disabled = gameState.actionTaken;
+                let cardHTML = createCardHTML(card, disabled);
+                
+                if(isSelected && !disabled) {
+                    cardHTML = cardHTML.replace('class="card', 'class="card selected');
+                }
+                
+                return cardHTML;
+            }).join('');
+            
+            // 선택된 카드 표시
+            const selectedCardsEl = document.getElementById('selectedCards');
+            selectedCardsEl.innerHTML = gameState.selectedCards.map(card => createCardHTML(card, true)).join('');
+            
+            // 조합 정보 표시
+            const combination = calculateCombinationScore(gameState.selectedCards);
+            const combinationInfo = document.getElementById('combinationInfo');
+            
+            if(gameState.actionTaken) {
+                combinationInfo.textContent = "이번 턴에 이미 액션을 완료했습니다.";
+            } else {
+                combinationInfo.textContent = combination.description;
+            }
+            
+            // 버튼 상태 업데이트
+            const submitBtn = document.getElementById('submitCombination');
+            const discardBtn = document.getElementById('discardCard');
+            
+            const canSubmitCombination = combination.score > 0 && !gameState.actionTaken;
+            const canDiscardCard = gameState.selectedCards.length === 1 && !gameState.actionTaken;
+            
+            submitBtn.disabled = !canSubmitCombination;
+            submitBtn.textContent = `조합 완성 (${combination.score}점)`;
+            
+            discardBtn.disabled = !canDiscardCard;
+            
+            // 액션 완료 시 버튼 텍스트 변경
+            if(gameState.actionTaken) {
+                submitBtn.textContent = "액션 완료됨";
+                discardBtn.textContent = "액션 완료됨";
+            } else {
+                discardBtn.textContent = "카드 1장 버리기";
+            }
+        }
+
+        // 게임 상태 업데이트
+        function updateGameStatus() {
+            document.getElementById('myScore').textContent = `${gameState.myScore}점`;
+            document.getElementById('currentRound').textContent = `${gameState.currentRound} / 30`;
+            document.getElementById('myCardCount').textContent = `${gameState.myCards.length}장`;
+        }
+
+        // 미션 팝업 표시
+        function showMissionPopup() {
+            document.getElementById('missionText').textContent = gameState.currentMission;
+            document.getElementById('missionPopup').classList.remove('hidden');
+        }
+
+        // 미션 팝업 닫기
+        function closeMissionPopup() {
+            document.getElementById('missionPopup').classList.add('hidden');
+        }
 
         // 게임 초기화
         function initGame() {
@@ -732,17 +964,21 @@
             // 내 카드 5장 배분
             gameState.myCards = deck.splice(0, 5);
             
-            // 나머지 플레이어들에게도 5장씩 (시뮬레이션)
-            gameState.deckCount = deck.length - (gameState.players.length - 1) * 5;
+            // 첫 번째 플레이어가 나인지 확인
+            gameState.isMyTurnAsKing = gameState.currentKingIndex === 0;
             
-            // 첫 미션 표시
-            setTimeout(showMissionPopup, 1000);
+            if(gameState.isMyTurnAsKing) {
+                gameState.currentMission = missions[0];
+                setTimeout(showMissionPopup, 1500);
+            }
             
             updateUI();
         }
 
-        // 게임 시작
-        initGame();
+        // 페이지 로드 시 게임 시작
+        document.addEventListener('DOMContentLoaded', function() {
+            initGame();
+        });
     </script>
 </body>
 </html>
