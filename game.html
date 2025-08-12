@@ -421,11 +421,7 @@
             </div>
             <div class="status-row">
                 <span class="status-label">라운드</span>
-                <span class="status-value" id="currentRound">1 / 30</span>
-            </div>
-            <div class="status-row">
-                <span class="status-label">내 카드</span>
-                <span class="status-value" id="myCardCount">5장</span>
+                <span class="status-value" id="currentRound">1 / 5</span>
             </div>
         </div>
 
@@ -530,8 +526,7 @@
             myScore: 0,
             isMyTurnAsKing: false,
             selectedPlayers: [],
-            currentMission: '',
-            actionTaken: false // 이번 턴에 이미 액션을 했는지
+            currentMission: ''
         };
 
         // 카드 타입 정의
@@ -719,7 +714,7 @@
 
         // 카드 선택 토글
         function toggleCardSelection(cardId) {
-            if(gameState.isMyTurnAsKing || gameState.actionTaken) return;
+            if(gameState.isMyTurnAsKing) return;
             
             const card = gameState.myCards.find(c => c.id === cardId);
             if(!card) return;
@@ -765,7 +760,7 @@
 
         // 조합 완성
         function submitCombination() {
-            if(gameState.isMyTurnAsKing || gameState.actionTaken) return;
+            if(gameState.isMyTurnAsKing) return;
             
             const combination = calculateCombinationScore(gameState.selectedCards);
             if(combination.score > 0) {
@@ -777,7 +772,6 @@
                 });
                 
                 gameState.selectedCards = [];
-                gameState.actionTaken = true;
                 
                 alert(`${combination.description}\n${combination.score}점 획득!`);
                 updateUI();
@@ -786,13 +780,12 @@
 
         // 카드 버리기
         function discardCard() {
-            if(gameState.isMyTurnAsKing || gameState.actionTaken) return;
+            if(gameState.isMyTurnAsKing) return;
             
             if(gameState.selectedCards.length === 1) {
                 const discardedCard = gameState.selectedCards[0];
                 gameState.myCards = gameState.myCards.filter(card => card.id !== discardedCard.id);
                 gameState.selectedCards = [];
-                gameState.actionTaken = true;
                 
                 alert('카드 1장을 버렸습니다.');
                 updateUI();
@@ -809,14 +802,17 @@
             ).join(', ')}님이 선택되었습니다!`);
             
             gameState.selectedPlayers = [];
-            nextTurn();
+            nextKingTurn();
         }
 
-        // 다음 턴
-        function nextTurn() {
-            gameState.currentRound++;
+        // 다음 턴 (왕 교체)
+        function nextKingTurn() {
+            // 한 바퀴 돌면 라운드 증가
+            if(gameState.currentKingIndex === gameState.players.length - 1) {
+                gameState.currentRound++;
+            }
+            
             gameState.currentKingIndex = (gameState.currentKingIndex + 1) % gameState.players.length;
-            gameState.actionTaken = false;
             
             // 내가 왕인지 확인
             const currentKing = gameState.players[gameState.currentKingIndex];
@@ -894,10 +890,9 @@
             const myCardsEl = document.getElementById('myCards');
             myCardsEl.innerHTML = gameState.myCards.map(card => {
                 const isSelected = gameState.selectedCards.some(c => c.id === card.id);
-                const disabled = gameState.actionTaken;
-                let cardHTML = createCardHTML(card, disabled);
+                let cardHTML = createCardHTML(card, false);
                 
-                if(isSelected && !disabled) {
+                if(isSelected) {
                     cardHTML = cardHTML.replace('class="card', 'class="card selected');
                 }
                 
@@ -912,8 +907,10 @@
             const combination = calculateCombinationScore(gameState.selectedCards);
             const combinationInfo = document.getElementById('combinationInfo');
             
-            if(gameState.actionTaken) {
-                combinationInfo.textContent = "이번 턴에 이미 액션을 완료했습니다.";
+            if(gameState.selectedCards.length === 0) {
+                combinationInfo.textContent = "카드를 선택하여 조합을 만드세요";
+            } else if(combination.score === 0) {
+                combinationInfo.textContent = "더 이상 조합할 수 있는 카드가 없습니다";
             } else {
                 combinationInfo.textContent = combination.description;
             }
@@ -922,28 +919,23 @@
             const submitBtn = document.getElementById('submitCombination');
             const discardBtn = document.getElementById('discardCard');
             
-            const canSubmitCombination = combination.score > 0 && !gameState.actionTaken;
-            const canDiscardCard = gameState.selectedCards.length === 1 && !gameState.actionTaken;
+            const canSubmitCombination = combination.score > 0;
+            const canDiscardCard = gameState.selectedCards.length === 1;
             
             submitBtn.disabled = !canSubmitCombination;
             submitBtn.textContent = `조합 완성 (${combination.score}점)`;
             
             discardBtn.disabled = !canDiscardCard;
-            
-            // 액션 완료 시 버튼 텍스트 변경
-            if(gameState.actionTaken) {
-                submitBtn.textContent = "액션 완료됨";
-                discardBtn.textContent = "액션 완료됨";
-            } else {
-                discardBtn.textContent = "카드 1장 버리기";
-            }
+            discardBtn.textContent = "카드 1장 버리기";
         }
 
         // 게임 상태 업데이트
         function updateGameStatus() {
             document.getElementById('myScore').textContent = `${gameState.myScore}점`;
-            document.getElementById('currentRound').textContent = `${gameState.currentRound} / 30`;
-            document.getElementById('myCardCount').textContent = `${gameState.myCards.length}장`;
+            
+            // 총 라운드는 플레이어 수만큼 (6명이면 5라운드)
+            const totalRounds = gameState.players.length - 1;
+            document.getElementById('currentRound').textContent = `${gameState.currentRound} / ${totalRounds}`;
         }
 
         // 미션 팝업 표시
