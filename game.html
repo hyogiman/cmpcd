@@ -913,14 +913,27 @@
                     players.push(createAIPlayer(aiIndex));
                 }
                 
-                // 카드 덱 생성 및 배분
+                // 카드 덱 생성 및 셔플 (매우 중요!)
                 const deck = shuffleDeck(createInitialDeck());
                 
-                // 각 플레이어에게 5장씩 배분
-                players.forEach(player => {
-                    player.cards = deck.splice(0, 5);
+                console.log('생성된 덱 길이:', deck.length);
+                console.log('덱 샘플:', deck.slice(0, 10).map(c => `${c.emoji}${c.number}`));
+                
+                // 각 플레이어에게 5장씩 순서대로 배분
+                players.forEach((player, playerIndex) => {
+                    player.cards = [];
+                    for(let i = 0; i < 5; i++) {
+                        if(deck.length > 0) {
+                            const card = deck.shift(); // shift로 앞에서부터 가져오기
+                            player.cards.push(card);
+                        }
+                    }
                     player.score = 0;
+                    console.log(`플레이어 ${playerIndex + 1} (${player.nickname}) 카드:`, 
+                        player.cards.map(c => `${c.emoji}${c.number}`));
                 });
+
+                console.log('배분 후 덱 잔여:', deck.length);
 
                 // 첫 미션 설정
                 const firstMission = missions[Math.floor(Math.random() * missions.length)];
@@ -952,8 +965,8 @@
             
             updateGameUI();
             
-            // AI 자동 플레이 시작
-            setTimeout(handleAIAutoPlay, 2000);
+            // AI 자동 플레이 주기적으로 실행 (10초마다)
+            setInterval(handleAIAutoPlay, 10000);
         }
 
         // 게임 UI 업데이트
@@ -991,15 +1004,18 @@
             document.getElementById('selectionStatus').textContent = 
                 `칭찬해준 플레이어 2명을 선택하세요 (${selectedPlayers.length}/2)`;
             
-            // 플레이어 선택 그리드 (자신 제외)
+            // 플레이어 선택 그리드 (자신과 AI 제외)
             const playersGrid = document.getElementById('playersGrid');
-            const otherPlayers = gameData.players.filter(p => p.id !== currentUser.uid);
+            const selectablePlayers = gameData.players.filter(p => p.id !== currentUser.uid && !p.isAI);
             
-            playersGrid.innerHTML = otherPlayers.map(player => {
+            console.log('선택 가능한 플레이어들:', selectablePlayers.map(p => p.nickname));
+            console.log('현재 선택된 플레이어들:', selectedPlayers);
+            
+            playersGrid.innerHTML = selectablePlayers.map(player => {
                 const isSelected = selectedPlayers.includes(player.id);
                 return `
                     <div class="player-card ${isSelected ? 'selected' : ''}" 
-                         onclick="${isSelected ? `unselectPlayer('${player.id}')` : `selectPlayer('${player.id}')`}">
+                         onclick="togglePlayerSelection('${player.id}')">
                         <div class="player-name">${player.nickname}</div>
                         ${isSelected ? '<div style="color: #ff6b6b;">✓ 선택됨</div>' : '<div>클릭하여 선택</div>'}
                     </div>
@@ -1008,6 +1024,30 @@
             
             // 버튼 상태
             document.getElementById('kingSelectBtn').disabled = selectedPlayers.length !== 2;
+        }
+
+        // 플레이어 선택 토글 (새로운 함수)
+        function togglePlayerSelection(playerId) {
+            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
+            if(!isMyTurnAsKing) return;
+            
+            console.log('플레이어 선택 토글:', playerId);
+            console.log('현재 선택된 플레이어들:', selectedPlayers);
+            
+            const isSelected = selectedPlayers.includes(playerId);
+            
+            if(isSelected) {
+                // 선택 해제
+                selectedPlayers = selectedPlayers.filter(id => id !== playerId);
+            } else {
+                // 선택 추가 (최대 2명까지)
+                if(selectedPlayers.length < 2) {
+                    selectedPlayers.push(playerId);
+                }
+            }
+            
+            console.log('업데이트된 선택 플레이어들:', selectedPlayers);
+            updateKingModeUI();
         }
 
         // 플레이어 모드 UI 업데이트
@@ -1228,26 +1268,8 @@
             updatePlayerModeUI();
         }
 
-        // 플레이어 선택 (왕 모드)
-        function selectPlayer(playerId) {
-            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
-            if(!isMyTurnAsKing) return;
-            if(selectedPlayers.length >= 2) return;
-            
-            if(!selectedPlayers.includes(playerId)) {
-                selectedPlayers.push(playerId);
-                updateKingModeUI();
-            }
-        }
-
-        // 플레이어 선택 해제 (왕 모드)
-        function unselectPlayer(playerId) {
-            const isMyTurnAsKing = gameData.currentKingIndex === gameData.players.findIndex(p => p.id === currentUser.uid);
-            if(!isMyTurnAsKing) return;
-            
-            selectedPlayers = selectedPlayers.filter(id => id !== playerId);
-            updateKingModeUI();
-        }
+        // 기존 함수들 제거하고 새로운 togglePlayerSelection 사용
+        // (selectPlayer, unselectPlayer 함수는 더 이상 필요 없음)
 
         // 플레이어 선택 초기화
         function resetPlayerSelection() {
@@ -1386,10 +1408,12 @@
             }
         }
 
-        // AI 턴 처리
+        // AI 턴 처리 (게임 시작 시 즉시 실행되도록 수정)
         function handleAITurn() {
             const currentKing = gameData.players[gameData.currentKingIndex];
             if (!currentKing || !currentKing.isAI) return;
+            
+            console.log('AI 턴 시작:', currentKing.nickname);
             
             // AI 생각 중 표시
             document.getElementById('aiThinking').classList.remove('hidden');
@@ -1398,9 +1422,19 @@
             setTimeout(async () => {
                 try {
                     // 사용자 플레이어들 중에서 랜덤하게 2명 선택
-                    const humanPlayers = gameData.players.filter(p => !p.isAI && p.id !== currentKing.id);
+                    const humanPlayers = gameData.players.filter(p => !p.isAI);
+                    console.log('AI가 선택할 수 있는 인간 플레이어들:', humanPlayers.map(p => p.nickname));
+                    
+                    if(humanPlayers.length < 2) {
+                        console.log('인간 플레이어가 2명 미만입니다.');
+                        document.getElementById('aiThinking').classList.add('hidden');
+                        return;
+                    }
+                    
                     const shuffledHumans = [...humanPlayers].sort(() => 0.5 - Math.random());
                     const aiSelectedPlayers = shuffledHumans.slice(0, 2).map(p => p.id);
+                    
+                    console.log('AI가 선택한 플레이어들:', aiSelectedPlayers);
                     
                     // 선택받은 플레이어들에게 카드 배분
                     const updatedPlayers = [...gameData.players];
@@ -1409,8 +1443,9 @@
                     aiSelectedPlayers.forEach(playerId => {
                         const playerIndex = updatedPlayers.findIndex(p => p.id === playerId);
                         if(playerIndex !== -1 && updatedDeck.length > 0) {
-                            const newCard = updatedDeck.pop();
+                            const newCard = updatedDeck.shift(); // 덱에서 첫 번째 카드 가져오기
                             updatedPlayers[playerIndex].cards.push(newCard);
+                            console.log(`${updatedPlayers[playerIndex].nickname}에게 카드 지급:`, newCard.emoji + newCard.number);
                         }
                     });
                     
@@ -1425,6 +1460,9 @@
                     // 새 미션 설정
                     const newMission = missions[Math.floor(Math.random() * missions.length)];
                     
+                    console.log('다음 왕 인덱스:', nextKingIndex);
+                    console.log('다음 라운드:', nextRound);
+                    
                     // Firestore 업데이트
                     await db.collection('games').doc(currentRoomCode).update({
                         players: updatedPlayers,
@@ -1437,6 +1475,16 @@
                     
                     document.getElementById('aiThinking').classList.add('hidden');
                     
+                    // 선택받은 플레이어 알림
+                    const selectedNames = aiSelectedPlayers.map(id => 
+                        gameData.players.find(p => p.id === id).nickname
+                    );
+                    
+                    // 내가 선택받았을 때만 알림
+                    if(aiSelectedPlayers.includes(currentUser.uid)) {
+                        alert(`AI ${currentKing.nickname}님이 나를 선택했습니다! 카드 1장을 받았어요.`);
+                    }
+                    
                 } catch (error) {
                     console.error('AI 턴 처리 오류:', error);
                     document.getElementById('aiThinking').classList.add('hidden');
@@ -1444,11 +1492,19 @@
             }, 3000);
         }
 
-        // AI 자동 플레이 (카드 조합/버리기)
+        // AI 자동 플레이 (카드 조합/버리기) - 주기적으로 실행
         function handleAIAutoPlay() {
+            console.log('AI 자동 플레이 시작');
+            
             // AI 플레이어들의 자동 행동
             gameData.players.forEach(async (player, index) => {
-                if (!player.isAI || !player.cards || player.cards.length <= 5) return;
+                if (!player.isAI || !player.cards) return;
+                
+                console.log(`AI ${player.nickname} 카드 수: ${player.cards.length}`);
+                
+                // 5장 초과이거나 좋은 조합이 있으면 행동
+                const shouldAct = player.cards.length > 5 || hasGoodCombination(player.cards);
+                if (!shouldAct) return;
                 
                 try {
                     const aiCards = player.cards;
@@ -1473,6 +1529,7 @@
                     let updatedDeck = [...gameData.deck];
                     
                     if (bestCombination && bestScore > 0) {
+                        console.log(`AI ${player.nickname} 조합 사용: ${bestScore}점`);
                         // 조합 사용
                         updatedPlayers[index].score = (updatedPlayers[index].score || 0) + bestScore;
                         updatedPlayers[index].cards = updatedPlayers[index].cards.filter(
@@ -1480,6 +1537,7 @@
                         );
                         updatedDeck.push(...bestCombination);
                     } else if (aiCards.length > 5) {
+                        console.log(`AI ${player.nickname} 카드 버리기`);
                         // 랜덤 카드 1장 버리기
                         const randomIndex = Math.floor(Math.random() * aiCards.length);
                         const discardedCard = aiCards[randomIndex];
@@ -1497,6 +1555,20 @@
                     console.error('AI 자동 플레이 오류:', error);
                 }
             });
+        }
+
+        // AI가 좋은 조합을 가지고 있는지 확인
+        function hasGoodCombination(cards) {
+            for (let size = 2; size <= Math.min(5, cards.length); size++) {
+                const combinations = getCombinations(cards, size);
+                for (let combo of combinations) {
+                    const score = calculateCombinationScore(combo).score;
+                    if (score >= 5) { // 5점 이상이면 좋은 조합으로 판단
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         // 조합 생성 헬퍼 함수
