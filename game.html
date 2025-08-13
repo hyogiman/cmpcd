@@ -907,8 +907,8 @@
             try {
                 let players = [...gameData.players];
                 
-                // 4명 미만이면 AI 추가
-                while (players.length < 4) {
+                // 2명 미만이면 AI 추가
+                while (players.length < 2) {
                     const aiIndex = players.filter(p => p.isAI).length + 1;
                     players.push(createAIPlayer(aiIndex));
                 }
@@ -1006,7 +1006,7 @@
             
             // 플레이어 선택 그리드 (자신과 AI 제외)
             const playersGrid = document.getElementById('playersGrid');
-            const selectablePlayers = gameData.players.filter(p => p.id !== currentUser.uid && !p.isAI);
+            const selectablePlayers = gameData.players.filter(p => p.id !== currentUser.uid); // AI도 선택 가능하도록
             
             console.log('선택 가능한 플레이어들:', selectablePlayers.map(p => p.nickname));
             console.log('현재 선택된 플레이어들:', selectedPlayers);
