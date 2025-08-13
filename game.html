@@ -1570,7 +1570,25 @@
                         
                         // 새 미션 설정
                         const newMission = missions[Math.floor(Math.random() * missions.length)];
-                        
+                        // 게임 종료 조건 체크
+                        if (nextRound > gameData.players.length) {
+                            // 게임 종료 - 최고 점수자 찾기
+                            const winner = updatedPlayers.reduce((prev, current) => 
+                                (prev.score > current.score) ? prev : current
+                            );
+                            
+                            await db.collection('games').doc(currentRoomCode).update({
+                                players: updatedPlayers,
+                                deck: updatedDeck,
+                                status: 'finished',
+                                winner: winner.nickname,
+                                finalScores: updatedPlayers.map(p => ({ nickname: p.nickname, score: p.score }))
+                            });
+                            
+                            document.getElementById('aiThinking').classList.add('hidden');
+                            alert(`🎉 게임 종료!\n우승자: ${winner.nickname} (${winner.score}점)`);
+                            return;
+                        }
                         // Firestore 업데이트
                         await db.collection('games').doc(currentRoomCode).update({
                             players: updatedPlayers,
