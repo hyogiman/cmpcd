@@ -967,39 +967,41 @@
             
         }
 
-            // 게임 UI 업데이트
-                    function updateGameUI() {
-                        const container = document.getElementById('gameContainer');
-                        const currentKing = gameData.players[gameData.currentKingIndex];
-                        const isMyTurnAsKing = currentKing && currentKing.id === currentUser.uid;
-                        
-                        // 왕 모드/플레이어 모드 설정
-                        if (isMyTurnAsKing) {
-                            container.classList.add('is-king');
-                            updateKingModeUI();
-                            
-                            // 새 미션일 때 팝업 표시
-                            if (gameData.currentMission && document.getElementById('missionPopup').classList.contains('hidden')) {
-                                setTimeout(showMissionPopup, 1000);
-                            }
-                        } else {
-                            container.classList.remove('is-king');
-                            updatePlayerModeUI();
-                            
-                            // AI 턴인지 확인하고 AI 로직 실행
-                            if (currentKing && currentKing.isAI) {
-                                handleAITurn();
-                            } else if (!isMyTurnAsKing) {
-                                // AI 카드 플레이 (왕 턴이 아닐 때)
-                                setTimeout(() => {
-                                    handleAICardPlay();
-                                }, 1000);
-                            }
-                        }
-                        
-                        updateTurnIndicator();
-                        updateGameStatus();
-                    }
+        // 게임 UI 업데이트
+        function updateGameUI() {
+            const container = document.getElementById('gameContainer');
+            const currentKing = gameData.players[gameData.currentKingIndex];
+            const isMyTurnAsKing = currentKing && currentKing.id === currentUser.uid;
+            
+            // 왕 모드/플레이어 모드 설정
+            if (isMyTurnAsKing) {
+                container.classList.add('is-king');
+                updateKingModeUI();
+                
+                // 새 미션일 때 팝업 표시
+                if (gameData.currentMission && document.getElementById('missionPopup').classList.contains('hidden')) {
+                    setTimeout(showMissionPopup, 1000);
+                }
+            } else {
+                container.classList.remove('is-king');
+                updatePlayerModeUI();
+            }
+            
+            // AI 턴 처리 (왕이 AI일 때만)
+            if (currentKing && currentKing.isAI) {
+                handleAITurn();
+            }
+            
+            // AI 카드 플레이 (왕이 아닌 AI들)
+            if (!isMyTurnAsKing && !currentKing.isAI) {
+                setTimeout(() => {
+                    handleAICardPlay();
+                }, 1000);
+            }
+            
+            updateTurnIndicator();
+            updateGameStatus();
+        }
 
         // 왕 모드 UI 업데이트
         function updateKingModeUI() {
