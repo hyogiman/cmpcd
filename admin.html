@@ -551,12 +551,14 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h2>🗃️ 데이터 관리</h2>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button class="btn btn-secondary" onclick="exportGameData()">게임 데이터 내보내기</button>
-                    <button class="btn btn-danger" onclick="clearOldData()">오래된 데이터 정리</button>
-                    <button class="btn btn-success" onclick="backupData()">데이터 백업</button>
+                <div class="card">
+                    <h2>🗃️ 데이터 관리</h2>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="exportGameData()">게임 데이터 내보내기</button>
+                        <button class="btn btn-danger" onclick="clearOldData()">오래된 데이터 정리</button>
+                        <button class="btn btn-success" onclick="backupData()">데이터 백업</button>
+                        <button class="btn btn-danger" onclick="resetAllGames()" style="background: linear-gradient(45deg, #ff4757, #ff3838);">🚨 모든 게임 리셋</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1163,6 +1165,29 @@
                 addMission();
             }
         });
+
+        async function resetAllGames() {
+    if (!confirm('정말로 모든 게임을 리셋하시겠습니까? 이 작업은 되돌릴 수 없습니다!')) return;
+    if (!confirm('진짜로 확실합니까? 모든 게임 데이터가 삭제됩니다!')) return;
+    
+    try {
+        const gamesSnapshot = await db.collection('games').get();
+        const batch = db.batch();
+        
+        gamesSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        
+        await batch.commit();
+        showMessage(`${gamesSnapshot.size}개의 게임이 모두 리셋되었습니다.`, 'success');
+        loadRooms();
+        loadDashboard();
+        
+    } catch (error) {
+        console.error('게임 리셋 오류:', error);
+        showMessage('게임 리셋에 실패했습니다.', 'error');
+    }
+}
     </script>
 </body>
 </html>
