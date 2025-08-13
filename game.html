@@ -969,9 +969,18 @@
 
         // 게임 UI 업데이트
         function updateGameUI() {
+
+                // 디버깅용 로그
+            console.log('=== 왕 정보 디버깅 ===');
+            console.log('현재 왕 인덱스:', gameData.currentKingIndex);
+            console.log('전체 플레이어:', gameData.players.map((p, i) => ({ index: i, nickname: p.nickname, id: p.id })));
+            console.log('현재 사용자 ID:', currentUser.uid);
+            
             const container = document.getElementById('gameContainer');
             const currentKing = gameData.players[gameData.currentKingIndex];
-            const isMyTurnAsKing = currentKing && currentKing.id === currentUser.uid;
+            console.log('현재 왕:', currentKing ? currentKing.nickname : '없음');
+            const isMyTurnAsKing = currentKing && currentKing.id === currentUser.uid && gameData.currentKingIndex !== undefined;
+            console.log('내가 왕인가?', isMyTurnAsKing);
             
             // 왕 모드/플레이어 모드 설정
             if (isMyTurnAsKing) {
