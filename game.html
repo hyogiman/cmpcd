@@ -1005,6 +1005,11 @@
 
         // 왕 모드 UI 업데이트
         function updateKingModeUI() {
+                // 디버깅용 로그 추가
+            console.log('=== 디버깅 정보 ===');
+            console.log('전체 플레이어 목록:', gameData.players.map(p => ({ nickname: p.nickname, id: p.id, isAI: p.isAI })));
+            console.log('현재 사용자 ID:', currentUser.uid);
+
             document.getElementById('kingMission').textContent = gameData.currentMission;
             document.getElementById('selectionStatus').textContent = 
                 `칭찬해준 플레이어 2명을 선택하세요 (${selectedPlayers.length}/2)`;
