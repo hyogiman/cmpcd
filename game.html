@@ -745,6 +745,12 @@
             return urlParams.get('room');
         }
 
+        // URL에서 닉네임 가져오기
+        function getNicknameFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('nickname');
+        }
+
         // 카드 생성 함수
         function createCard(type, emoji, number, isJoker = false) {
             return {
@@ -803,29 +809,29 @@
             };
         }
 
-        // 페이지 로드 시 초기화
-        document.addEventListener('DOMContentLoaded', async function() {
-            currentRoomCode = getRoomCodeFromURL();
+            // 페이지 로드 시 초기화
+            document.addEventListener('DOMContentLoaded', async function() {
+                currentRoomCode = getRoomCodeFromURL();
+                const myNickname = getNicknameFromURL();
+                
+                if (!currentRoomCode || !myNickname) {
+                    showError('게임방 코드나 닉네임이 없습니다.');
+                    return;
+                }
             
-            if (!currentRoomCode) {
-                showError('게임방 코드가 없습니다.');
-                return;
-            }
-
-            try {
-                // 익명 로그인
-                await auth.signInAnonymously();
-                currentUser = auth.currentUser;
-                
-                // 게임방 연결
-                connectToGame();
-                
-            } catch (error) {
-                console.error('로그인 오류:', error);
-                showError('로그인에 실패했습니다.');
-            }
-        });
-
+                try {
+                    // 닉네임을 currentUser로 설정
+                    currentUser = { nickname: myNickname };
+                    
+                    // 게임방 연결
+                    connectToGame();
+                    
+                } catch (error) {
+                    console.error('초기화 오류:', error);
+                    showError('초기화에 실패했습니다.');
+                }
+            });
+        
         // 게임방 연결
         function connectToGame() {
             gameListener = db.collection('games').doc(currentRoomCode).onSnapshot(
@@ -841,7 +847,7 @@
                     console.log('현재 사용자 UID:', currentUser.uid);
                     console.log('게임 내 모든 플레이어:', gameData.players.map(p => ({ nickname: p.nickname, id: p.id })));
 
-                    myPlayerData = gameData.players.find(p => p.id === currentUser.uid);
+                    myPlayerData = gameData.players.find(p => p.nickname === currentUser.nickname);
                     console.log('내 플레이어 데이터:', myPlayerData);
                     
                     if (!myPlayerData) {
