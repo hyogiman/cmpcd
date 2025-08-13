@@ -714,6 +714,7 @@
         let selectedCards = [];
         let selectedPlayers = [];
         let gameListener = null;
+        let kingTimeoutId = null; // 추가
 
         // 카드 타입 정의
         const cardTypes = {
@@ -1341,14 +1342,22 @@
                 alert('조합 완성에 실패했습니다.');
             }
             // 카드가 5장 이하가 되면 왕 게임 체크
-            if (myPlayerData.cards.length <= 5) {
-                const currentKing = gameData.players[gameData.currentKingIndex];
-                const isMyTurnAsKing = currentKing && currentKing.nickname === currentUser.nickname;
-                if (isMyTurnAsKing) {
-                    document.getElementById('aiThinking').classList.add('hidden');
-                    updateGameUI(); // 왕 모드로 전환
+            setTimeout(() => {
+                // 데이터가 업데이트된 후 확인
+                if (myPlayerData.cards.length <= 5) {
+                    const currentKing = gameData.players[gameData.currentKingIndex];
+                    const isMyTurnAsKing = currentKing && currentKing.nickname === currentUser.nickname;
+                    if (isMyTurnAsKing) {
+                        // 기존 타이머 제거
+                        if (kingTimeoutId) {
+                            clearTimeout(kingTimeoutId);
+                            kingTimeoutId = null;
+                        }
+                        document.getElementById('aiThinking').classList.add('hidden');
+                        updateGameUI(); // 왕 모드로 전환
+                    }
                 }
-            }
+            }, 500); // 500ms 후에 체크
         }
 
         // 카드 버리기
@@ -1385,14 +1394,22 @@
                 alert('카드 버리기에 실패했습니다.');
             }
             // 카드가 5장 이하가 되면 왕 게임 체크
-            if (myPlayerData.cards.length <= 5) {
-                const currentKing = gameData.players[gameData.currentKingIndex];
-                const isMyTurnAsKing = currentKing && currentKing.nickname === currentUser.nickname;
-                if (isMyTurnAsKing) {
-                    document.getElementById('aiThinking').classList.add('hidden');
-                    updateGameUI(); // 왕 모드로 전환
+            setTimeout(() => {
+                // 데이터가 업데이트된 후 확인
+                if (myPlayerData.cards.length <= 5) {
+                    const currentKing = gameData.players[gameData.currentKingIndex];
+                    const isMyTurnAsKing = currentKing && currentKing.nickname === currentUser.nickname;
+                    if (isMyTurnAsKing) {
+                        // 기존 타이머 제거
+                        if (kingTimeoutId) {
+                            clearTimeout(kingTimeoutId);
+                            kingTimeoutId = null;
+                        }
+                        document.getElementById('aiThinking').classList.add('hidden');
+                        updateGameUI(); // 왕 모드로 전환
+                    }
                 }
-            }            
+            }, 500); // 500ms 후에 체크       
         }
 
         // 왕 선택 완료
@@ -1665,25 +1682,36 @@
                 gameListener();
             }
         });
-            // 왕 카드 초과 경고
-            function showKingCardOverLimitWarning() {
-                const warningEl = document.getElementById('aiThinking');
-                warningEl.classList.remove('hidden');
-                warningEl.innerHTML = `
-                    <div style="background: rgba(255,107,107,0.2); border: 2px solid #ff6b6b; padding: 15px; border-radius: 10px;">
-                        <div style="font-weight: bold; color: #ff6b6b;">⚠️ 왕 권한 보류</div>
-                        <div style="margin-top: 10px;">카드가 ${myPlayerData.cards.length}장입니다. 5장 이하로 줄여야 왕 게임을 시작할 수 있습니다.</div>
-                        <div style="margin-top: 5px; font-size: 0.8rem;">10초 내에 카드를 정리하지 않으면 다음 플레이어에게 왕 권한이 넘어갑니다.</div>
-                    </div>
-                `;
-                
-                // 10초 후 자동으로 다음 왕으로 넘기기
-                setTimeout(() => {
-                    if (myPlayerData.cards.length > 5) {
-                        skipToNextKing();
+                // 왕 카드 초과 경고
+                function showKingCardOverLimitWarning() {
+                    // 기존 타이머가 있으면 제거
+                    if (kingTimeoutId) {
+                        clearTimeout(kingTimeoutId);
+                        kingTimeoutId = null;
                     }
-                }, 10000);
-            }
+                    
+                    const warningEl = document.getElementById('aiThinking');
+                    warningEl.classList.remove('hidden');
+                    warningEl.innerHTML = `
+                        <div style="background: rgba(255,107,107,0.2); border: 2px solid #ff6b6b; padding: 15px; border-radius: 10px;">
+                            <div style="font-weight: bold; color: #ff6b6b;">⚠️ 왕 권한 보류</div>
+                            <div style="margin-top: 10px;">카드가 ${myPlayerData.cards.length}장입니다. 5장 이하로 줄여야 왕 게임을 시작할 수 있습니다.</div>
+                            <div style="margin-top: 5px; font-size: 0.8rem;">10초 내에 카드를 정리하지 않으면 다음 플레이어에게 왕 권한이 넘어갑니다.</div>
+                        </div>
+                    `;
+                    
+                    // 10초 후 자동으로 다음 왕으로 넘기기
+                    kingTimeoutId = setTimeout(() => {
+                        // 다시 한번 확인해서 여전히 카드가 5장 초과면 넘기기
+                        if (myPlayerData && myPlayerData.cards && myPlayerData.cards.length > 5) {
+                            const currentKing = gameData.players[gameData.currentKingIndex];
+                            if (currentKing && currentKing.nickname === currentUser.nickname) {
+                                skipToNextKing();
+                            }
+                        }
+                        kingTimeoutId = null;
+                    }, 10000);
+                }
             
             // 다음 왕으로 강제 이동
             async function skipToNextKing() {
