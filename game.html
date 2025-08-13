@@ -836,7 +836,13 @@
                     }
 
                     gameData = doc.data();
+                    // 디버깅 로그 추가
+                    console.log('=== 사용자 구분 디버깅 ===');
+                    console.log('현재 사용자 UID:', currentUser.uid);
+                    console.log('게임 내 모든 플레이어:', gameData.players.map(p => ({ nickname: p.nickname, id: p.id })));
+
                     myPlayerData = gameData.players.find(p => p.id === currentUser.uid);
+                    console.log('내 플레이어 데이터:', myPlayerData);
                     
                     if (!myPlayerData) {
                         showError('이 게임방에 참가하지 않았습니다.');
