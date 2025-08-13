@@ -879,7 +879,7 @@
                 const startBtn = document.getElementById('startGameBtn');
                 const canStart = gameData.players.length >= 1;
                 startBtn.disabled = !canStart;
-                startBtn.textContent = `게임 시작하기 (${gameData.players.length}명)`;
+                startBtn.textContent = `게임 시작하기 (${gameData.players.length}명, AI ${Math.max(0, 4 - gameData.players.length)}명 추가)`;
             } else {
                 document.getElementById('hostControls').classList.add('hidden');
                 document.getElementById('guestMessage').classList.remove('hidden');
@@ -908,7 +908,7 @@
                 let players = [...gameData.players];
                 
                 // 2명 미만이면 AI 추가
-                while (players.length < 2) {
+                while (players.length < 4) {
                     const aiIndex = players.filter(p => p.isAI).length + 1;
                     players.push(createAIPlayer(aiIndex));
                 }
