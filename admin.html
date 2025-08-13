@@ -909,6 +909,11 @@
                         <div class="room-info">
                             생성: ${formatTime(room.createdAt)}
                         </div>
+                        ${room.players ? room.players.map(p => 
+                            `<div class="room-info" style="font-size: 0.7rem; color: #888;">
+                                ${p.nickname}: ${p.cards ? p.cards.map(c => `${c.emoji}${c.number}`).join(' ') : '카드없음'} (${p.score || 0}점)
+                            </div>`
+                        ).join('') : ''}
                         ${room.startedAt ? `<div class="room-info">시작: ${formatTime(room.startedAt)}</div>` : ''}
                         ${room.status === 'playing' ? `<div class="room-info">라운드: ${room.currentRound || 1}</div>` : ''}
                         
