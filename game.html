@@ -986,12 +986,19 @@
             
             // 왕 모드/플레이어 모드 설정
             if (isMyTurnAsKing) {
-                container.classList.add('is-king');
-                updateKingModeUI();
-                
-                // 새 미션일 때 팝업 표시
-                if (gameData.currentMission && document.getElementById('missionPopup').classList.contains('hidden')) {
-                    setTimeout(showMissionPopup, 1000);
+                // 카드가 5장 초과인지 체크
+                if (myPlayerData.cards.length > 5) {
+                    container.classList.remove('is-king');
+                    updatePlayerModeUI();
+                    showKingCardOverLimitWarning();
+                } else {
+                    container.classList.add('is-king');
+                    updateKingModeUI();
+                    
+                    // 새 미션일 때 팝업 표시
+                    if (gameData.currentMission && document.getElementById('missionPopup').classList.contains('hidden')) {
+                        setTimeout(showMissionPopup, 1000);
+                    }
                 }
             } else {
                 container.classList.remove('is-king');
@@ -1333,6 +1340,15 @@
                 console.error('조합 완성 오류:', error);
                 alert('조합 완성에 실패했습니다.');
             }
+            // 카드가 5장 이하가 되면 왕 게임 체크
+            if (myPlayerData.cards.length <= 5) {
+                const currentKing = gameData.players[gameData.currentKingIndex];
+                const isMyTurnAsKing = currentKing && currentKing.nickname === currentUser.nickname;
+                if (isMyTurnAsKing) {
+                    document.getElementById('aiThinking').classList.add('hidden');
+                    updateGameUI(); // 왕 모드로 전환
+                }
+            }
         }
 
         // 카드 버리기
@@ -1368,6 +1384,15 @@
                 console.error('카드 버리기 오류:', error);
                 alert('카드 버리기에 실패했습니다.');
             }
+            // 카드가 5장 이하가 되면 왕 게임 체크
+            if (myPlayerData.cards.length <= 5) {
+                const currentKing = gameData.players[gameData.currentKingIndex];
+                const isMyTurnAsKing = currentKing && currentKing.nickname === currentUser.nickname;
+                if (isMyTurnAsKing) {
+                    document.getElementById('aiThinking').classList.add('hidden');
+                    updateGameUI(); // 왕 모드로 전환
+                }
+            }            
         }
 
         // 왕 선택 완료
@@ -1502,7 +1527,7 @@
                         console.error('AI 턴 처리 오류:', error);
                         document.getElementById('aiThinking').classList.add('hidden');
                     }
-                }, 3000);
+                }, 10000);
             }
 
             // AI 카드 플레이 (왕 턴이 아닐 때)
@@ -1530,7 +1555,7 @@
                                 console.error('AI 카드 액션 오류:', error);
                                 resolve();
                             }
-                        }, 3000); // 3초 대기
+                        }, 10000); // 10초 대기
                     });
                 }
             }
@@ -1640,6 +1665,51 @@
                 gameListener();
             }
         });
+            // 왕 카드 초과 경고
+            function showKingCardOverLimitWarning() {
+                const warningEl = document.getElementById('aiThinking');
+                warningEl.classList.remove('hidden');
+                warningEl.innerHTML = `
+                    <div style="background: rgba(255,107,107,0.2); border: 2px solid #ff6b6b; padding: 15px; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #ff6b6b;">⚠️ 왕 권한 보류</div>
+                        <div style="margin-top: 10px;">카드가 ${myPlayerData.cards.length}장입니다. 5장 이하로 줄여야 왕 게임을 시작할 수 있습니다.</div>
+                        <div style="margin-top: 5px; font-size: 0.8rem;">10초 내에 카드를 정리하지 않으면 다음 플레이어에게 왕 권한이 넘어갑니다.</div>
+                    </div>
+                `;
+                
+                // 10초 후 자동으로 다음 왕으로 넘기기
+                setTimeout(() => {
+                    if (myPlayerData.cards.length > 5) {
+                        skipToNextKing();
+                    }
+                }, 10000);
+            }
+            
+            // 다음 왕으로 강제 이동
+            async function skipToNextKing() {
+                try {
+                    const nextKingIndex = (gameData.currentKingIndex + 1) % gameData.players.length;
+                    let nextRound = gameData.currentRound;
+                    
+                    if(nextKingIndex === 0) {
+                        nextRound++;
+                    }
+                    
+                    const newMission = missions[Math.floor(Math.random() * missions.length)];
+                    
+                    await db.collection('games').doc(currentRoomCode).update({
+                        currentKingIndex: nextKingIndex,
+                        currentRound: nextRound,
+                        currentMission: newMission
+                    });
+                    
+                    alert('시간 초과로 왕 권한이 다음 플레이어에게 넘어갔습니다.');
+                    
+                } catch (error) {
+                    console.error('왕 넘기기 오류:', error);
+                }
+            }
+        
     </script>
 </body>
 </html>
