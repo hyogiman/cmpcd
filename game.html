@@ -624,7 +624,9 @@
             <div id="aiThinking" class="ai-thinking hidden">
                 <div>🤖 AI가 생각 중입니다...</div>
             </div>
-
+            <div id="cardReceiveNotification" class="ai-thinking hidden">
+                <div>🎁 카드를 받았습니다!</div>
+            </div>
             <!-- 왕 모드 UI -->
             <div class="king-mode king-only">
                 <div class="king-title">👑 당신이 왕입니다!</div>
@@ -869,8 +871,10 @@
                 showWaitingRoom();
             } else if (gameData.status === 'playing') {
                 showGameScreen();
+            } else if (gameData.status === 'finished') {
+                showGameFinished();
             } else {
-                showError('게임이 종료되었습니다.');
+                showError('알 수 없는 게임 상태입니다.');
             }
         }
 
@@ -987,6 +991,12 @@
             
             // 왕 모드/플레이어 모드 설정
             if (isMyTurnAsKing) {
+                // 기존 타이머 제거 (중요!)
+                if (kingTimeoutId) {
+                    clearTimeout(kingTimeoutId);
+                    kingTimeoutId = null;
+                }
+                
                 // 카드가 5장 초과인지 체크
                 if (myPlayerData.cards.length > 5) {
                     container.classList.remove('is-king');
@@ -996,6 +1006,9 @@
                     container.classList.add('is-king');
                     updateKingModeUI();
                     
+                    // AI thinking 숨기기
+                    document.getElementById('aiThinking').classList.add('hidden');
+                    
                     // 새 미션일 때 팝업 표시
                     if (gameData.currentMission && document.getElementById('missionPopup').classList.contains('hidden')) {
                         setTimeout(showMissionPopup, 1000);
@@ -1004,7 +1017,13 @@
             } else {
                 container.classList.remove('is-king');
                 updatePlayerModeUI();
-            }
+                
+                // 왕이 아닐 때도 타이머 제거
+                if (kingTimeoutId) {
+                    clearTimeout(kingTimeoutId);
+                    kingTimeoutId = null;
+                }
+            } 
             
             // AI 턴 처리 (왕이 AI일 때만)
             if (currentKing && currentKing.isAI) {
@@ -1132,7 +1151,7 @@
                 let className = 'turn-player';
                 if(index === gameData.currentKingIndex) {
                     className += ' current-king';
-                } else if(player.id === currentUser.nickname) {
+                } else if(player.nickname === currentUser.nickname) {
                     className += ' my-turn';
                 }
                 if(player.isAI) {
@@ -1443,6 +1462,25 @@
                 // 새 미션 설정
                 const newMission = missions[Math.floor(Math.random() * missions.length)];
                 
+                // 게임 종료 조건 체크
+                if (nextRound > gameData.players.length) {
+                    // 게임 종료 - 최고 점수자 찾기
+                    const winner = updatedPlayers.reduce((prev, current) => 
+                        (prev.score > current.score) ? prev : current
+                    );
+                    
+                    await db.collection('games').doc(currentRoomCode).update({
+                        players: updatedPlayers,
+                        deck: updatedDeck,
+                        status: 'finished',
+                        winner: winner.nickname,
+                        finalScores: updatedPlayers.map(p => ({ nickname: p.nickname, score: p.score }))
+                    });
+                    
+                    document.getElementById('aiThinking').classList.add('hidden');
+                    alert(`🎉 게임 종료!\n우승자: ${winner.nickname} (${winner.score}점)`);
+                    return;
+                }
                 // Firestore 업데이트
                 await db.collection('games').doc(currentRoomCode).update({
                     players: updatedPlayers,
@@ -1453,11 +1491,16 @@
                     selectedPlayers: []
                 });
                 
-                const selectedPlayerNames = selectedPlayers.map(id => 
-                    gameData.players.find(p => p.id === id).nickname
-                );
-                
-                alert(`${selectedPlayerNames.join(', ')}님이 선택되었습니다!`);
+                // 내가 선택받았는지 확인
+                const myPlayerId = gameData.players.find(p => p.nickname === currentUser.nickname)?.id;
+                if(selectedPlayers.includes(myPlayerId)) {
+                    showCardReceiveNotification("왕");
+                } else {
+                    const selectedPlayerNames = selectedPlayers.map(id => 
+                        gameData.players.find(p => p.id === id).nickname
+                    );
+                    alert(`${selectedPlayerNames.join(', ')}님이 선택되었습니다!`);
+                }
                 selectedPlayers = [];
                 
             } catch (error) {
@@ -1539,6 +1582,11 @@
                         });
                         
                         document.getElementById('aiThinking').classList.add('hidden');
+                        // 내가 선택받았는지 확인 (닉네임 기반)
+                        const myPlayerId = gameData.players.find(p => p.nickname === currentUser.nickname)?.id;
+                        if(aiSelectedPlayers.includes(myPlayerId)) {
+                            showCardReceiveNotification(`AI ${currentKing.nickname}`);
+                        }
                         
                     } catch (error) {
                         console.error('AI 턴 처리 오류:', error);
@@ -1621,7 +1669,6 @@
                     updatedPlayers[playerIndex].cards.splice(cardIndex, 1);
                     updatedDeck.push(cardToDiscard);
                 }
-                
                 // Firestore 업데이트
                 await db.collection('games').doc(currentRoomCode).update({
                     players: updatedPlayers,
@@ -1715,6 +1762,12 @@
             
             // 다음 왕으로 강제 이동
             async function skipToNextKing() {
+                // 타이머 제거
+                if (kingTimeoutId) {
+                    clearTimeout(kingTimeoutId);
+                    kingTimeoutId = null;
+                }
+                
                 try {
                     const nextKingIndex = (gameData.currentKingIndex + 1) % gameData.players.length;
                     let nextRound = gameData.currentRound;
@@ -1737,7 +1790,38 @@
                     console.error('왕 넘기기 오류:', error);
                 }
             }
-        
+        // 카드 받음 알림 표시
+            function showCardReceiveNotification(fromPlayer, cardCount = 1) {
+                const notificationEl = document.getElementById('cardReceiveNotification');
+                notificationEl.classList.remove('hidden');
+                notificationEl.innerHTML = `
+                    <div style="background: rgba(78,205,196,0.2); border: 2px solid #4ecdc4; padding: 15px; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #4ecdc4;">🎁 카드 받음</div>
+                        <div style="margin-top: 8px;">${fromPlayer}님이 나를 선택했습니다!</div>
+                        <div style="margin-top: 5px; font-size: 0.9rem;">카드 ${cardCount}장을 받았어요.</div>
+                    </div>
+                `;
+                
+                // 3초 후 자동으로 숨김
+                setTimeout(() => {
+                    notificationEl.classList.add('hidden');
+                }, 3000);
+            }
+
+        // 게임 종료 화면 표시
+            function showGameFinished() {
+                hideAllScreens();
+                
+                // 임시로 에러 화면을 사용하여 게임 종료 표시
+                document.getElementById('errorScreen').classList.remove('hidden');
+                document.getElementById('errorMessage').innerHTML = `
+                    🏆 게임 종료!<br>
+                    우승자: ${gameData.winner}<br>
+                    <button class="btn btn-primary" onclick="window.location.href='index.html'" style="margin-top: 15px;">
+                        새 게임 시작
+                    </button>
+                `;
+            }
     </script>
 </body>
 </html>
