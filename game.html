@@ -1131,7 +1131,7 @@
                 let className = 'turn-player';
                 if(index === gameData.currentKingIndex) {
                     className += ' current-king';
-                } else if(player.id === currentUser.uid) {
+                } else if(player.id === currentUser.nickname) {
                     className += ' my-turn';
                 }
                 if(player.isAI) {
@@ -1407,7 +1407,7 @@
                 
                 selectedPlayers.forEach(playerId => {
                     const playerIndex = updatedPlayers.findIndex(p => p.id === playerId);
-                    if(playerIndex !== -1 && updatedDeck.length > 0) {
+                    if(playerIndex !== -1 && updatedDeck.length > 0 && updatedPlayers[playerIndex].cards.length <= 5) {
                         // 덱에서 카드 1장 가져오기
                         const newCard = updatedDeck.pop();
                         updatedPlayers[playerIndex].cards.push(newCard);
@@ -1493,7 +1493,7 @@
                         
                         aiSelectedPlayers.forEach(playerId => {
                             const playerIndex = updatedPlayers.findIndex(p => p.id === playerId);
-                            if(playerIndex !== -1 && updatedDeck.length > 0) {
+                            if(playerIndex !== -1 && updatedDeck.length > 0 && updatedPlayers[playerIndex].cards.length <= 5) {
                                 const newCard = updatedDeck.shift();
                                 updatedPlayers[playerIndex].cards.push(newCard);
                                 console.log(`${updatedPlayers[playerIndex].nickname}에게 카드 지급:`, newCard.emoji + newCard.number);
