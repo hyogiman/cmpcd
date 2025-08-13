@@ -877,7 +877,7 @@
                 document.getElementById('guestMessage').classList.add('hidden');
                 
                 const startBtn = document.getElementById('startGameBtn');
-                const canStart = gameData.players.length >= 4;
+                const canStart = gameData.players.length >= 1;
                 startBtn.disabled = !canStart;
                 startBtn.textContent = `게임 시작하기 (${gameData.players.length}명)`;
             } else {
